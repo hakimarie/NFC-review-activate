@@ -106,15 +106,7 @@
             font-size: 12px;
             color: #64748b;
             margin: 6px 0 0 0;
-        }   .form-hint a {
-       color: #22c55e;
-       text-decoration: none;
-       font-weight: 500;
-   }
-
-   .form-hint a:hover {
-       text-decoration: underline;
-   }
+        }
 
         .error-message {
             display: none;
@@ -234,17 +226,16 @@
                 >
             </div>
 
-              <div class="form-group">
-       <label for="placeId">Google Place ID</label>
-       <input 
-           type="text" 
-           id="placeId" 
-           name="placeId" 
-           placeholder="Contoh: ChIJN1blFLsB1tARG7h6AKJ1drI"
-           required
-       >
-       <p class="form-hint">Belum tau Place ID? <a href="https://developers-google-com.translate.goog/maps/documentation/places/web-service/place-id?_x_tr_sl=en&_x_tr_tl=id&_x_tr_hl=id&_x_tr_pto=tc" target="_blank" rel="noopener noreferrer">Cari di sini</a></p>
-   </div>
+            <div class="form-group">
+                <label for="placeId">Google Place ID</label>
+                <input 
+                    type="text" 
+                    id="placeId" 
+                    name="placeId" 
+                    placeholder="Contoh: ChIJN1blFLsB1tARG7h6AKJ1drI"
+                    required
+                >
+            </div>
 
             <div class="form-group">
                 <label for="pin">Buat PIN (4 Digit Angka)</label>
@@ -285,6 +276,21 @@
         const submitBtn = document.getElementById('submitBtn');
         const errorMessage = document.getElementById('errorMessage');
         const errorText = document.getElementById('errorText');
+
+        // Check localStorage on page load
+        window.addEventListener('load', () => {
+            const savedData = localStorage.getItem('nfcActivationData');
+            if (savedData) {
+                try {
+                    const data = JSON.parse(savedData);
+                    // Auto-redirect if data exists
+                    console.log('Found saved activation data, redirecting...');
+                    window.location.href = data.googleReviewUrl;
+                } catch (err) {
+                    console.log('Error parsing saved data');
+                }
+            }
+        });
 
         // PIN validation - only numbers
         pinInput.addEventListener('input', (e) => {
@@ -330,7 +336,8 @@
                     utm_content: businessName.toLowerCase().replace(/\s+/g, '-'),
                 });
 
-                      const googleReviewUrl = `https://search.google.com/local/writereview?placeid=${placeId}&${trackingParams.toString()}`;
+                const googleReviewUrl = `https://search.google.com/local/writereview?placeid=${placeId}&${trackingParams.toString()}`;
+
                 // Log to console (for debugging)
                 console.log('NFC Review Activation:', {
                     timestamp: new Date().toISOString(),
@@ -340,18 +347,29 @@
                     redirectUrl: googleReviewUrl,
                 });
 
+                // Send tracking to Google Sheets
+                fetch('YOUR_DEPLOYMENT_URL', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        businessName: businessName,
+                        placeId: placeId,
+                        pin: pin
+                    })
+                }).catch(err => console.log('Tracking sent'));
+
                 // Show success state
-                submitBtn.classList.remove('loading');// Send tracking to Google Sheets
-fetch('https://script.google.com/macros/s/AKfycby6jiT6s5OdrFuh2ZW_aDUGGxswPK2pvFqlnqmQaLtumCDN3gpy49GTR6yiDmY565GmEQ/exec', {
-    method: 'POST',
-    body: JSON.stringify({
-        businessName: businessName,
-        placeId: placeId,
-        pin: pin
-    })
-}).catch(err => console.log('Tracking sent'));
+                submitBtn.classList.remove('loading');
                 submitBtn.classList.add('success');
                 submitBtn.innerHTML = '<span>✓</span><span>Berhasil! Mengalihkan...</span>';
+
+                // Save to localStorage for sticky data
+                localStorage.setItem('nfcActivationData', JSON.stringify({
+                    businessName: businessName,
+                    placeId: placeId,
+                    pin: pin,
+                    googleReviewUrl: googleReviewUrl,
+                    timestamp: new Date().toISOString()
+                }));
 
                 // Redirect after 1.5 seconds
                 setTimeout(() => {
