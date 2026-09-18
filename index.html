@@ -208,7 +208,7 @@
     </style>
 </head>
 <body>
-    <div class="container">
+       <div class="container" id="mainContainer" style="opacity: 0;">
         <div class="header">
             <h1>Aktivasi Kartu</h1>
             <p>Isi formulir untuk mengaktifkan NFC card Anda</p>
@@ -278,7 +278,23 @@
         const errorText = document.getElementById('errorText');
 
         // Check localStorage on page load
-        window.addEventListener('load', () => {
+          // Check localStorage on page load
+   window.addEventListener('load', () => {
+       const container = document.getElementById('mainContainer');
+       const savedData = localStorage.getItem('nfcActivationData');
+       if (savedData) {
+           try {
+               const data = JSON.parse(savedData);
+               console.log('Found saved activation data, redirecting...');
+               window.location.href = data.googleReviewUrl;
+           } catch (err) {
+               console.log('Error parsing saved data');
+               container.style.opacity = '1';
+           }
+       } else {
+           container.style.opacity = '1';
+       }
+   });
             const savedData = localStorage.getItem('nfcActivationData');
             if (savedData) {
                 try {
