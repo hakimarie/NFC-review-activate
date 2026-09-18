@@ -106,7 +106,15 @@
             font-size: 12px;
             color: #64748b;
             margin: 6px 0 0 0;
-        }
+        }   .form-hint a {
+       color: #22c55e;
+       text-decoration: none;
+       font-weight: 500;
+   }
+
+   .form-hint a:hover {
+       text-decoration: underline;
+   }
 
         .error-message {
             display: none;
@@ -226,16 +234,17 @@
                 >
             </div>
 
-            <div class="form-group">
-                <label for="placeId">Google Place ID</label>
-                <input 
-                    type="text" 
-                    id="placeId" 
-                    name="placeId" 
-                    placeholder="Contoh: ChIJN1blFLsB1tARG7h6AKJ1drI"
-                    required
-                >
-            </div>
+              <div class="form-group">
+       <label for="placeId">Google Place ID</label>
+       <input 
+           type="text" 
+           id="placeId" 
+           name="placeId" 
+           placeholder="Contoh: ChIJN1blFLsB1tARG7h6AKJ1drI"
+           required
+       >
+       <p class="form-hint">Belum tau Place ID? <a href="https://developers-google-com.translate.goog/maps/documentation/places/web-service/place-id?_x_tr_sl=en&_x_tr_tl=id&_x_tr_hl=id&_x_tr_pto=tc" target="_blank" rel="noopener noreferrer">Cari di sini</a></p>
+   </div>
 
             <div class="form-group">
                 <label for="pin">Buat PIN (4 Digit Angka)</label>
