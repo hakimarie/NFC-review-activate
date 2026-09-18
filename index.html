@@ -35,6 +35,12 @@
             width: 100%;
             border: 1px solid rgba(34, 197, 94, 0.1);
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .container.visible {
+            opacity: 1;
         }
 
         .header {
@@ -96,16 +102,20 @@
             color: rgba(148, 163, 184, 0.6);
         }
 
-        .form-group input[type="text"]:nth-child(3) {
-            letter-spacing: 4px;
-            text-align: center;
-            font-family: monospace;
-        }
-
         .form-hint {
             font-size: 12px;
             color: #64748b;
             margin: 6px 0 0 0;
+        }
+
+        .form-hint a {
+            color: #22c55e;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .form-hint a:hover {
+            text-decoration: underline;
         }
 
         .error-message {
@@ -166,10 +176,6 @@
             background: rgba(34, 197, 94, 0.2);
         }
 
-        .submit-btn.loading {
-            background: linear-gradient(135deg, #22c55e 0%, #3b82f6 100%);
-        }
-
         .spinner {
             width: 18px;
             height: 18px;
@@ -190,6 +196,7 @@
             background: rgba(34, 197, 94, 0.05);
             border-radius: 8px;
             border: 1px solid rgba(34, 197, 94, 0.1);
+            margin-bottom: 16px;
         }
 
         .footer-help p {
@@ -205,10 +212,27 @@
             margin: 0;
             line-height: 1.5;
         }
+
+        .clear-btn {
+            width: 100%;
+            padding: 8px 16px;
+            font-size: 12px;
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .clear-btn:hover {
+            background: rgba(239, 68, 68, 0.3);
+        }
     </style>
 </head>
 <body>
-       <div class="container" id="mainContainer" style="opacity: 0;">
+    <div class="container" id="mainContainer">
         <div class="header">
             <h1>Aktivasi Kartu</h1>
             <p>Isi formulir untuk mengaktifkan NFC card Anda</p>
@@ -235,6 +259,7 @@
                     placeholder="Contoh: ChIJN1blFLsB1tARG7h6AKJ1drI"
                     required
                 >
+                <p class="form-hint">Belum tau Place ID? <a href="https://developers-google-com.translate.goog/maps/documentation/places/web-service/place-id?_x_tr_sl=en&_x_tr_tl=id&_x_tr_hl=id&_x_tr_pto=tc" target="_blank" rel="noopener noreferrer">Cari di sini</a></p>
             </div>
 
             <div class="form-group">
@@ -266,45 +291,35 @@
             <p>💡 Belum punya Place ID?</p>
             <p>Cari nama bisnis Anda di Google Maps, copy ID dari URL atau hubungi admin.</p>
         </div>
+
+        <button id="clearBtn" class="clear-btn">🔄 Clear Saved Data</button>
     </div>
 
     <script>
         const form = document.getElementById('nfcForm');
+        const container = document.getElementById('mainContainer');
         const businessNameInput = document.getElementById('businessName');
         const placeIdInput = document.getElementById('placeId');
         const pinInput = document.getElementById('pin');
         const submitBtn = document.getElementById('submitBtn');
+        const clearBtn = document.getElementById('clearBtn');
         const errorMessage = document.getElementById('errorMessage');
         const errorText = document.getElementById('errorText');
 
         // Check localStorage on page load
-          // Check localStorage on page load
-   window.addEventListener('load', () => {
-       const container = document.getElementById('mainContainer');
-       const savedData = localStorage.getItem('nfcActivationData');
-       if (savedData) {
-           try {
-               const data = JSON.parse(savedData);
-               console.log('Found saved activation data, redirecting...');
-               window.location.href = data.googleReviewUrl;
-           } catch (err) {
-               console.log('Error parsing saved data');
-               container.style.opacity = '1';
-           }
-       } else {
-           container.style.opacity = '1';
-       }
-   });
+        window.addEventListener('load', () => {
             const savedData = localStorage.getItem('nfcActivationData');
             if (savedData) {
                 try {
                     const data = JSON.parse(savedData);
-                    // Auto-redirect if data exists
                     console.log('Found saved activation data, redirecting...');
                     window.location.href = data.googleReviewUrl;
                 } catch (err) {
                     console.log('Error parsing saved data');
+                    container.classList.add('visible');
                 }
+            } else {
+                container.classList.add('visible');
             }
         });
 
@@ -313,14 +328,13 @@
             e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4);
         });
 
+        // Form submit
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            // Clear error
             errorMessage.classList.remove('show');
             errorText.textContent = '';
 
-            // Validation
             if (!businessNameInput.value.trim()) {
                 showError('Nama bisnis harus diisi');
                 return;
@@ -334,13 +348,11 @@
                 return;
             }
 
-            // Show loading state
             submitBtn.disabled = true;
             submitBtn.classList.add('loading');
             submitBtn.innerHTML = '<div class="spinner"></div><span>Memproses...</span>';
 
             try {
-                // Build tracking URL
                 const businessName = businessNameInput.value;
                 const placeId = placeIdInput.value;
                 const pin = pinInput.value;
@@ -354,7 +366,6 @@
 
                 const googleReviewUrl = `https://search.google.com/local/writereview?placeid=${placeId}&${trackingParams.toString()}`;
 
-                // Log to console (for debugging)
                 console.log('NFC Review Activation:', {
                     timestamp: new Date().toISOString(),
                     businessName: businessName,
@@ -364,7 +375,7 @@
                 });
 
                 // Send tracking to Google Sheets
-                fetch('YOUR_DEPLOYMENT_URL', {
+                fetch('https://script.google.com/macros/s/AKfycby6jiT6s5OdrFuh2ZW_aDUGGxswPK2pvFqlnqmQaLtumCDN3gpy49GTR6yiDmY565GmEQ/exec', {
                     method: 'POST',
                     body: JSON.stringify({
                         businessName: businessName,
@@ -373,20 +384,11 @@
                     })
                 }).catch(err => console.log('Tracking sent'));
 
-                // Show success state
-                submitBtn.classList.remove('loading');// Send tracking to Google Sheets
-fetch('https://script.google.com/macros/s/AKfycby6jiT6s5OdrFuh2ZW_aDUGGxswPK2pvFqlnqmQaLtumCDN3gpy49GTR6yiDmY565GmEQ/exec', {
-    method: 'POST',
-    body: JSON.stringify({
-        businessName: businessName,
-        placeId: placeId,
-        pin: pin
-    })
-}).catch(err => console.log('Tracking sent'));
+                submitBtn.classList.remove('loading');
                 submitBtn.classList.add('success');
                 submitBtn.innerHTML = '<span>✓</span><span>Berhasil! Mengalihkan...</span>';
 
-                // Save to localStorage for sticky data
+                // Save to localStorage
                 localStorage.setItem('nfcActivationData', JSON.stringify({
                     businessName: businessName,
                     placeId: placeId,
@@ -395,7 +397,6 @@ fetch('https://script.google.com/macros/s/AKfycby6jiT6s5OdrFuh2ZW_aDUGGxswPK2pvF
                     timestamp: new Date().toISOString()
                 }));
 
-                // Redirect after 1.5 seconds
                 setTimeout(() => {
                     window.location.href = googleReviewUrl;
                 }, 1500);
@@ -405,6 +406,14 @@ fetch('https://script.google.com/macros/s/AKfycby6jiT6s5OdrFuh2ZW_aDUGGxswPK2pvF
                 submitBtn.disabled = false;
                 submitBtn.classList.remove('loading');
                 submitBtn.innerHTML = '<span>Aktivkan Kartu</span><span>→</span>';
+            }
+        });
+
+        // Clear button
+        clearBtn.addEventListener('click', () => {
+            if (confirm('Hapus data yang disimpan? Anda perlu isi form lagi di scan berikutnya.')) {
+                localStorage.removeItem('nfcActivationData');
+                alert('Data cleared. Form siap untuk aktivasi baru.');
             }
         });
 
