@@ -4,9 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KetemuTerus - Aktivasi Kartu NFC</title>
-    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/react.min.js"></script>
-    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/react-dom.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -14,7 +11,7 @@
             box-sizing: border-box;
         }
 
-        html, body, #root {
+        html, body {
             width: 100%;
             height: 100%;
         }
@@ -22,6 +19,164 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 32px;
+            max-width: 480px;
+            width: 100%;
+            border: 1px solid rgba(34, 197, 94, 0.1);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        .header {
+            margin-bottom: 32px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #ffffff;
+            margin: 0 0 8px 0;
+            background: linear-gradient(135deg, #22c55e 0%, #3b82f6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 14px;
+            color: #94a3b8;
+            margin: 0;
+        }
+
+        form {
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #e2e8f0;
+            margin-bottom: 8px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 14px;
+            border: 1px solid rgba(51, 65, 85, 0.6);
+            border-radius: 10px;
+            background: rgba(30, 41, 59, 0.8);
+            color: #e2e8f0;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .form-group input:focus {
+            border-color: rgba(34, 197, 94, 0.5);
+            background: rgba(30, 41, 59, 1);
+        }
+
+        .form-group input::placeholder {
+            color: rgba(148, 163, 184, 0.6);
+        }
+
+        .form-group input[type="text"]:nth-child(3) {
+            letter-spacing: 4px;
+            text-align: center;
+            font-family: monospace;
+        }
+
+        .form-hint {
+            font-size: 12px;
+            color: #64748b;
+            margin: 6px 0 0 0;
+        }
+
+        .error-message {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 14px;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .error-message.show {
+            display: flex;
+        }
+
+        .error-message span {
+            color: #ef4444;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .error-message p {
+            font-size: 13px;
+            color: #fca5a5;
+            margin: 0;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #22c55e 0%, #3b82f6 100%);
+            color: #ffffff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(34, 197, 94, 0.3);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.8;
+            cursor: not-allowed;
+        }
+
+        .submit-btn.success {
+            background: rgba(34, 197, 94, 0.2);
+        }
+
+        .submit-btn.loading {
+            background: linear-gradient(135deg, #22c55e 0%, #3b82f6 100%);
+        }
+
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
         }
 
         @keyframes spin {
@@ -30,392 +185,175 @@
             }
         }
 
-        input::placeholder {
-            color: rgba(148, 163, 184, 0.6);
+        .footer-help {
+            padding: 16px;
+            background: rgba(34, 197, 94, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(34, 197, 94, 0.1);
+        }
+
+        .footer-help p {
+            font-size: 12px;
+            color: #cbd5e1;
+            margin: 0 0 6px 0;
+            font-weight: 500;
+        }
+
+        .footer-help p:last-child {
+            font-size: 12px;
+            color: #94a3b8;
+            margin: 0;
+            line-height: 1.5;
         }
     </style>
 </head>
 <body>
-    <div id="root"></div>
+    <div class="container">
+        <div class="header">
+            <h1>Aktivasi Kartu</h1>
+            <p>Isi formulir untuk mengaktifkan NFC card Anda</p>
+        </div>
 
-    <script type="text/babel">
-        const { useState } = React;
-
-        function NFCReviewActivation() {
-            const [formData, setFormData] = useState({
-                businessName: '',
-                placeId: '',
-                pin: '',
-            });
-            const [loading, setLoading] = useState(false);
-            const [error, setError] = useState('');
-            const [success, setSuccess] = useState(false);
-
-            const handleChange = (e) => {
-                const { name, value } = e.target;
-                if (name === 'pin') {
-                    const sanitized = value.replace(/\D/g, '').slice(0, 4);
-                    setFormData(prev => ({ ...prev, [name]: sanitized }));
-                } else {
-                    setFormData(prev => ({ ...prev, [name]: value }));
-                }
-            };
-
-            const handleSubmit = async (e) => {
-                e.preventDefault();
-                setError('');
-                setSuccess(false);
-
-                if (!formData.businessName.trim()) {
-                    setError('Nama bisnis harus diisi');
-                    return;
-                }
-                if (!formData.placeId.trim()) {
-                    setError('Google Place ID harus diisi');
-                    return;
-                }
-                if (formData.pin.length !== 4) {
-                    setError('PIN harus 4 digit');
-                    return;
-                }
-
-                setLoading(true);
-
-                try {
-                    const trackingParams = new URLSearchParams({
-                        utm_source: 'nfc',
-                        utm_medium: 'card',
-                        utm_campaign: formData.pin,
-                        utm_content: formData.businessName.toLowerCase().replace(/\s+/g, '-'),
-                    });
-
-                    const googleReviewUrl = `https://search.google.com/local/reviews?placeid=${formData.placeId}&${trackingParams.toString()}`;
-
-                    console.log('NFC Review Activation:', {
-                        timestamp: new Date().toISOString(),
-                        businessName: formData.businessName,
-                        placeId: formData.placeId,
-                        cardId: formData.pin,
-                        redirectUrl: googleReviewUrl,
-                    });
-
-                    setTimeout(() => {
-                        setSuccess(true);
-                        setTimeout(() => {
-                            window.location.href = googleReviewUrl;
-                        }, 1500);
-                    }, 300);
-                } catch (err) {
-                    setError('Terjadi kesalahan. Silakan coba lagi.');
-                } finally {
-                    setLoading(false);
-                }
-            };
-
-            return (
-                <div
-                    style={{
-                        background: 'linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%)',
-                        minHeight: '100vh',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        padding: '20px',
-                    }}
+        <form id="nfcForm">
+            <div class="form-group">
+                <label for="businessName">Nama Bisnis</label>
+                <input 
+                    type="text" 
+                    id="businessName" 
+                    name="businessName" 
+                    placeholder="Masukkan nama bisnis Anda"
+                    required
                 >
-                    <div
-                        style={{
-                            background: 'rgba(15, 23, 42, 0.95)',
-                            backdropFilter: 'blur(10px)',
-                            borderRadius: '20px',
-                            padding: '32px',
-                            maxWidth: '480px',
-                            width: '100%',
-                            border: '1px solid rgba(34, 197, 94, 0.1)',
-                            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.4)',
-                        }}
-                    >
-                        {/* Header */}
-                        <div style={{ marginBottom: '32px', textAlign: 'center' }}>
-                            <h1
-                                style={{
-                                    fontSize: '28px',
-                                    fontWeight: '700',
-                                    color: '#ffffff',
-                                    margin: '0 0 8px 0',
-                                    background: 'linear-gradient(135deg, #22c55e 0%, #3b82f6 100%)',
-                                    WebkitBackgroundClip: 'text',
-                                    WebkitTextFillColor: 'transparent',
-                                }}
-                            >
-                                Aktivasi Kartu
-                            </h1>
-                            <p
-                                style={{
-                                    fontSize: '14px',
-                                    color: '#94a3b8',
-                                    margin: '0',
-                                }}
-                            >
-                                Isi formulir untuk mengaktifkan NFC card Anda
-                            </p>
-                        </div>
+            </div>
 
-                        {/* Form */}
-                        <form onSubmit={handleSubmit} style={{ marginBottom: '24px' }}>
-                            {/* Business Name */}
-                            <div style={{ marginBottom: '24px' }}>
-                                <label
-                                    style={{
-                                        display: 'block',
-                                        fontSize: '14px',
-                                        fontWeight: '500',
-                                        color: '#e2e8f0',
-                                        marginBottom: '8px',
-                                    }}
-                                >
-                                    Nama Bisnis
-                                </label>
-                                <input
-                                    type="text"
-                                    name="businessName"
-                                    value={formData.businessName}
-                                    onChange={handleChange}
-                                    placeholder="Masukkan nama bisnis Anda"
-                                    style={{
-                                        width: '100%',
-                                        padding: '12px 16px',
-                                        fontSize: '14px',
-                                        border: '1px solid rgba(51, 65, 85, 0.6)',
-                                        borderRadius: '10px',
-                                        background: 'rgba(30, 41, 59, 0.8)',
-                                        color: '#e2e8f0',
-                                        outline: 'none',
-                                        transition: 'all 0.2s ease',
-                                    }}
-                                    onFocus={(e) => {
-                                        e.target.style.borderColor = 'rgba(34, 197, 94, 0.5)';
-                                        e.target.style.background = 'rgba(30, 41, 59, 1)';
-                                    }}
-                                    onBlur={(e) => {
-                                        e.target.style.borderColor = 'rgba(51, 65, 85, 0.6)';
-                                        e.target.style.background = 'rgba(30, 41, 59, 0.8)';
-                                    }}
-                                />
-                            </div>
+            <div class="form-group">
+                <label for="placeId">Google Place ID</label>
+                <input 
+                    type="text" 
+                    id="placeId" 
+                    name="placeId" 
+                    placeholder="Contoh: ChIJN1blFLsB1tARG7h6AKJ1drI"
+                    required
+                >
+            </div>
 
-                            {/* Google Place ID */}
-                            <div style={{ marginBottom: '24px' }}>
-                                <label
-                                    style={{
-                                        display: 'block',
-                                        fontSize: '14px',
-                                        fontWeight: '500',
-                                        color: '#e2e8f0',
-                                        marginBottom: '8px',
-                                    }}
-                                >
-                                    Google Place ID
-                                </label>
-                                <input
-                                    type="text"
-                                    name="placeId"
-                                    value={formData.placeId}
-                                    onChange={handleChange}
-                                    placeholder="Contoh: ChIJN1blFLsB1tARG7h6AKJ1drI"
-                                    style={{
-                                        width: '100%',
-                                        padding: '12px 16px',
-                                        fontSize: '14px',
-                                        border: '1px solid rgba(51, 65, 85, 0.6)',
-                                        borderRadius: '10px',
-                                        background: 'rgba(30, 41, 59, 0.8)',
-                                        color: '#e2e8f0',
-                                        outline: 'none',
-                                        transition: 'all 0.2s ease',
-                                        fontFamily: 'monospace',
-                                    }}
-                                    onFocus={(e) => {
-                                        e.target.style.borderColor = 'rgba(34, 197, 94, 0.5)';
-                                        e.target.style.background = 'rgba(30, 41, 59, 1)';
-                                    }}
-                                    onBlur={(e) => {
-                                        e.target.style.borderColor = 'rgba(51, 65, 85, 0.6)';
-                                        e.target.style.background = 'rgba(30, 41, 59, 0.8)';
-                                    }}
-                                />
-                            </div>
+            <div class="form-group">
+                <label for="pin">Buat PIN (4 Digit Angka)</label>
+                <input 
+                    type="text" 
+                    id="pin" 
+                    name="pin" 
+                    placeholder="1234"
+                    maxlength="4"
+                    inputmode="numeric"
+                    required
+                >
+                <p class="form-hint">Digunakan untuk tracking & analytics</p>
+            </div>
 
-                            {/* PIN */}
-                            <div style={{ marginBottom: '28px' }}>
-                                <label
-                                    style={{
-                                        display: 'block',
-                                        fontSize: '14px',
-                                        fontWeight: '500',
-                                        color: '#e2e8f0',
-                                        marginBottom: '8px',
-                                    }}
-                                >
-                                    Buat PIN (4 Digit Angka)
-                                </label>
-                                <input
-                                    type="text"
-                                    name="pin"
-                                    value={formData.pin}
-                                    onChange={handleChange}
-                                    placeholder="1234"
-                                    maxLength="4"
-                                    inputMode="numeric"
-                                    style={{
-                                        width: '100%',
-                                        padding: '12px 16px',
-                                        fontSize: '14px',
-                                        border: '1px solid rgba(51, 65, 85, 0.6)',
-                                        borderRadius: '10px',
-                                        background: 'rgba(30, 41, 59, 0.8)',
-                                        color: '#e2e8f0',
-                                        outline: 'none',
-                                        transition: 'all 0.2s ease',
-                                        letterSpacing: '4px',
-                                        textAlign: 'center',
-                                    }}
-                                    onFocus={(e) => {
-                                        e.target.style.borderColor = 'rgba(34, 197, 94, 0.5)';
-                                        e.target.style.background = 'rgba(30, 41, 59, 1)';
-                                    }}
-                                    onBlur={(e) => {
-                                        e.target.style.borderColor = 'rgba(51, 65, 85, 0.6)';
-                                        e.target.style.background = 'rgba(30, 41, 59, 0.8)';
-                                    }}
-                                />
-                                <p
-                                    style={{
-                                        fontSize: '12px',
-                                        color: '#64748b',
-                                        margin: '6px 0 0 0',
-                                    }}
-                                >
-                                    Digunakan untuk tracking & analytics
-                                </p>
-                            </div>
+            <div id="errorMessage" class="error-message">
+                <span>⚠️</span>
+                <p id="errorText"></p>
+            </div>
 
-                            {/* Error Message */}
-                            {error && (
-                                <div
-                                    style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '10px',
-                                        padding: '12px 14px',
-                                        background: 'rgba(239, 68, 68, 0.1)',
-                                        border: '1px solid rgba(239, 68, 68, 0.3)',
-                                        borderRadius: '8px',
-                                        marginBottom: '20px',
-                                    }}
-                                >
-                                    <span style={{ color: '#ef4444', fontSize: '18px' }}>⚠️</span>
-                                    <p
-                                        style={{
-                                            fontSize: '13px',
-                                            color: '#fca5a5',
-                                            margin: '0',
-                                        }}
-                                    >
-                                        {error}
-                                    </p>
-                                </div>
-                            )}
+            <button type="submit" id="submitBtn" class="submit-btn">
+                <span>Aktivkan Kartu</span>
+                <span>→</span>
+            </button>
+        </form>
 
-                            {/* Submit Button */}
-                            <button
-                                type="submit"
-                                disabled={loading || success}
-                                style={{
-                                    width: '100%',
-                                    padding: '14px 20px',
-                                    fontSize: '16px',
-                                    fontWeight: '600',
-                                    border: 'none',
-                                    borderRadius: '12px',
-                                    background: success
-                                        ? 'rgba(34, 197, 94, 0.2)'
-                                        : 'linear-gradient(135deg, #22c55e 0%, #3b82f6 100%)',
-                                    color: '#ffffff',
-                                    cursor: loading || success ? 'not-allowed' : 'pointer',
-                                    opacity: loading || success ? 0.8 : 1,
-                                    transition: 'all 0.3s ease',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    gap: '8px',
-                                }}
-                            >
-                                {success ? (
-                                    <>
-                                        <span style={{ fontSize: '20px' }}>✓</span>
-                                        <span>Berhasil! Mengalihkan...</span>
-                                    </>
-                                ) : loading ? (
-                                    <>
-                                        <div
-                                            style={{
-                                                width: '18px',
-                                                height: '18px',
-                                                border: '2px solid rgba(255, 255, 255, 0.3)',
-                                                borderTop: '2px solid white',
-                                                borderRadius: '50%',
-                                                animation: 'spin 0.8s linear infinite',
-                                            }}
-                                        />
-                                        <span>Memproses...</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <span>Aktivkan Kartu</span>
-                                        <span>→</span>
-                                    </>
-                                )}
-                            </button>
-                        </form>
+        <div class="footer-help">
+            <p>💡 Belum punya Place ID?</p>
+            <p>Cari nama bisnis Anda di Google Maps, copy ID dari URL atau hubungi admin.</p>
+        </div>
+    </div>
 
-                        {/* Footer Help */}
-                        <div
-                            style={{
-                                padding: '16px',
-                                background: 'rgba(34, 197, 94, 0.05)',
-                                borderRadius: '8px',
-                                border: '1px solid rgba(34, 197, 94, 0.1)',
-                            }}
-                        >
-                            <p
-                                style={{
-                                    fontSize: '12px',
-                                    color: '#cbd5e1',
-                                    margin: '0 0 6px 0',
-                                    fontWeight: '500',
-                                }}
-                            >
-                                💡 Belum punya Place ID?
-                            </p>
-                            <p
-                                style={{
-                                    fontSize: '12px',
-                                    color: '#94a3b8',
-                                    margin: '0',
-                                    lineHeight: '1.5',
-                                }}
-                            >
-                                Cari nama bisnis Anda di Google Maps, copy ID dari URL atau hubungi admin.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            );
+    <script>
+        const form = document.getElementById('nfcForm');
+        const businessNameInput = document.getElementById('businessName');
+        const placeIdInput = document.getElementById('placeId');
+        const pinInput = document.getElementById('pin');
+        const submitBtn = document.getElementById('submitBtn');
+        const errorMessage = document.getElementById('errorMessage');
+        const errorText = document.getElementById('errorText');
+
+        // PIN validation - only numbers
+        pinInput.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4);
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Clear error
+            errorMessage.classList.remove('show');
+            errorText.textContent = '';
+
+            // Validation
+            if (!businessNameInput.value.trim()) {
+                showError('Nama bisnis harus diisi');
+                return;
+            }
+            if (!placeIdInput.value.trim()) {
+                showError('Google Place ID harus diisi');
+                return;
+            }
+            if (pinInput.value.length !== 4) {
+                showError('PIN harus 4 digit');
+                return;
+            }
+
+            // Show loading state
+            submitBtn.disabled = true;
+            submitBtn.classList.add('loading');
+            submitBtn.innerHTML = '<div class="spinner"></div><span>Memproses...</span>';
+
+            try {
+                // Build tracking URL
+                const businessName = businessNameInput.value;
+                const placeId = placeIdInput.value;
+                const pin = pinInput.value;
+
+                const trackingParams = new URLSearchParams({
+                    utm_source: 'nfc',
+                    utm_medium: 'card',
+                    utm_campaign: pin,
+                    utm_content: businessName.toLowerCase().replace(/\s+/g, '-'),
+                });
+
+                const googleReviewUrl = `https://search.google.com/local/reviews?placeid=${placeId}&${trackingParams.toString()}`;
+
+                // Log to console (for debugging)
+                console.log('NFC Review Activation:', {
+                    timestamp: new Date().toISOString(),
+                    businessName: businessName,
+                    placeId: placeId,
+                    cardId: pin,
+                    redirectUrl: googleReviewUrl,
+                });
+
+                // Show success state
+                submitBtn.classList.remove('loading');
+                submitBtn.classList.add('success');
+                submitBtn.innerHTML = '<span>✓</span><span>Berhasil! Mengalihkan...</span>';
+
+                // Redirect after 1.5 seconds
+                setTimeout(() => {
+                    window.location.href = googleReviewUrl;
+                }, 1500);
+
+            } catch (err) {
+                showError('Terjadi kesalahan. Silakan coba lagi.');
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('loading');
+                submitBtn.innerHTML = '<span>Aktivkan Kartu</span><span>→</span>';
+            }
+        });
+
+        function showError(message) {
+            errorText.textContent = message;
+            errorMessage.classList.add('show');
         }
-
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<NFCReviewActivation />);
     </script>
 </body>
 </html>
