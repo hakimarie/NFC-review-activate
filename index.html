@@ -1,5 +1,12 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id"><!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XW8BYXLSNB"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-XW8BYXLSNB');
+</script>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -396,7 +403,12 @@ window.addEventListener('load', () => {
                 submitBtn.innerHTML = '<span>✓</span><span>Berhasil! Mengalihkan...</span>';
 
                 // Save to localStorage
-                localStorage.setItem('nfcActivationData', JSON.stringify({
+                localStorage.setItem Track GA event
+gtag('event', 'nfc_activation', {
+    'business_name': businessName,
+    'place_id': placeId,
+    'pin': pin
+});('nfcActivationData', JSON.stringify({
                     businessName: businessName,
                     placeId: placeId,
                     pin: pin,
