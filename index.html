@@ -1,16 +1,19 @@
 <!DOCTYPE html>
-<html lang="id"><!-- Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-XW8BYXLSNB"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-XW8BYXLSNB');
-</script>
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KetemuTerus - Aktivasi Kartu NFC</title>
+    
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XW8BYXLSNB"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-XW8BYXLSNB');
+    </script>
+    
     <style>
         * {
             margin: 0;
@@ -314,28 +317,28 @@
         const errorText = document.getElementById('errorText');
 
         // Check URL parameter for clear
-const urlParams = new URLSearchParams(window.location.search);
-if (urlParams.get('clear') === 'true') {
-    localStorage.removeItem('nfcActivationData');
-    window.history.replaceState({}, document.title, window.location.pathname);
-}
-
-// Check localStorage on page load
-window.addEventListener('load', () => {
-    const savedData = localStorage.getItem('nfcActivationData');
-    if (savedData) {
-        try {
-            const data = JSON.parse(savedData);
-            console.log('Found saved activation data, redirecting...');
-            window.location.href = data.googleReviewUrl;
-        } catch (err) {
-            console.log('Error parsing saved data');
-            container.classList.add('visible');
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('clear') === 'true') {
+            localStorage.removeItem('nfcActivationData');
+            window.history.replaceState({}, document.title, window.location.pathname);
         }
-    } else {
-        container.classList.add('visible');
-    }
-});
+
+        // Check localStorage on page load
+        window.addEventListener('load', () => {
+            const savedData = localStorage.getItem('nfcActivationData');
+            if (savedData) {
+                try {
+                    const data = JSON.parse(savedData);
+                    console.log('Found saved activation data, redirecting...');
+                    window.location.href = data.googleReviewUrl;
+                } catch (err) {
+                    console.log('Error parsing saved data');
+                    container.classList.add('visible');
+                }
+            } else {
+                container.classList.add('visible');
+            }
+        });
 
         // PIN validation - only numbers
         pinInput.addEventListener('input', (e) => {
@@ -398,17 +401,19 @@ window.addEventListener('load', () => {
                     })
                 }).catch(err => console.log('Tracking sent'));
 
+                // Track GA event
+                gtag('event', 'nfc_activation', {
+                    'business_name': businessName,
+                    'place_id': placeId,
+                    'pin': pin
+                });
+
                 submitBtn.classList.remove('loading');
                 submitBtn.classList.add('success');
                 submitBtn.innerHTML = '<span>✓</span><span>Berhasil! Mengalihkan...</span>';
 
                 // Save to localStorage
-                localStorage.setItem Track GA event
-gtag('event', 'nfc_activation', {
-    'business_name': businessName,
-    'place_id': placeId,
-    'pin': pin
-});('nfcActivationData', JSON.stringify({
+                localStorage.setItem('nfcActivationData', JSON.stringify({
                     businessName: businessName,
                     placeId: placeId,
                     pin: pin,
