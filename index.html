@@ -325,51 +325,84 @@
         const errorText = document.getElementById('errorText');
 
         // Check URL parameter for clear
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('clear') === 'true') {
-            localStorage.removeItem('nfcActivationData');
-            window.history.replaceState({}, document.title, window.location.pathname);
-        }
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('clear') === 'true') {
+    localStorage.removeItem('nfcActivationData');
+    window.history.replaceState({}, document.title, window.location.pathname);
+}
+
+// Check if PIN is in URL (NFC card with programmed PIN)
+const pinFromUrl = urlParams.get('pin');
+if (pinFromUrl && pinFromUrl.length === 4) {
+    // Skip form, query Supabase directly with PIN from URL
+    checkActivationByPin(pinFromUrl);
+}
 
         // Check Supabase on page load (global check)
-        async function checkActivationStatus() {
+async function checkActivationStatus() {
+    try {
+        // Check if PIN is in URL or try to get from localStorage first
+        const localSavedData = localStorage.getItem('nfcActivationData');
+        let pinToCheck = null;
+
+        // Priority: URL PIN > localStorage PIN
+        if (pinFromUrl) {
+            pinToCheck = pinFromUrl;
+        } else if (localSavedData) {
             try {
-                // Check if PIN is in URL or try to get from localStorage first
-                const localSavedData = localStorage.getItem('nfcActivationData');
-                let pinToCheck = null;
+                const data = JSON.parse(localSavedData);
+                pinToCheck = data.pin;
+            } catch (e) {}
+        }
 
-                if (localSavedData) {
-                    try {
-                        const data = JSON.parse(localSavedData);
-                        pinToCheck = data.pin;
-                    } catch (e) {}
-                }
+        // If we have a PIN, check Supabase
+        if (pinToCheck) {
+            const { data, error } = await supabase
+                .from('nfc_activations')
+                .select('*')
+                .eq('pin', pinToCheck)
+                .single();
 
-                // If we have a PIN, check Supabase
-                if (pinToCheck) {
-                    const { data, error } = await supabase
-                        .from('nfc_activations')
-                        .select('*')
-                        .eq('pin', pinToCheck)
-                        .single();
-
-                    if (data && data.id) {
-                        console.log('Found activation in Supabase, redirecting...');
-                        window.location.href = `https://search.google.com/local/writereview?placeid=${data.place_id}&utm_source=nfc&utm_medium=card&utm_campaign=${data.pin}`;
-                        return;
-                    }
-                }
-
-                // Show form if no activation found
-                container.classList.add('visible');
-            } catch (err) {
-                console.log('Supabase check error:', err);
-                container.classList.add('visible');
+            if (data && data.id) {
+                console.log('Found activation in Supabase, redirecting...');
+                window.location.href = `https://search.google.com/local/writereview?placeid=${data.place_id}&utm_source=nfc&utm_medium=card&utm_campaign=${data.pin}`;
+                return;
             }
         }
 
-        // Run check on load
-        window.addEventListener('load', checkActivationStatus);
+        // Show form if no activation found
+        container.classList.add('visible');
+    } catch (err) {
+        console.log('Supabase check error:', err);
+        container.classList.add('visible');
+    }
+}
+
+// Check by PIN (called from URL parameter)
+async function checkActivationByPin(pin) {
+    try {
+        const { data, error } = await supabase
+            .from('nfc_activations')
+            .select('*')
+            .eq('pin', pin)
+            .single();
+
+        if (data && data.id) {
+            console.log('Found activation by URL PIN, redirecting...');
+            window.location.href = `https://search.google.com/local/writereview?placeid=${data.place_id}&utm_source=nfc&utm_medium=card&utm_campaign=${data.pin}`;
+            return;
+        }
+        
+        // PIN not found, show form
+        container.classList.add('visible');
+    } catch (err) {
+        console.log('PIN check error:', err);
+        container.classList.add('visible');
+    }
+}
+
+// Run check on load
+window.addEventListener('load', checkActivationStatus);
 
         // PIN validation - only numbers
         pinInput.addEventListener('input', (e) => {
