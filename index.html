@@ -204,6 +204,106 @@
             }
         }
 
+
+        .flow-section {
+            margin: 0 0 28px 0;
+        }
+
+        .flow-heading {
+            text-align: center;
+            margin-bottom: 18px;
+        }
+
+        .flow-heading h2 {
+            font-size: 18px;
+            line-height: 1.3;
+            font-weight: 700;
+            color: #ffffff;
+            margin: 0 0 6px 0;
+        }
+
+        .flow-heading p {
+            font-size: 12px;
+            line-height: 1.5;
+            color: #94a3b8;
+            margin: 0;
+        }
+
+        .flow-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .flow-card {
+            position: relative;
+            padding: 16px 14px;
+            min-height: 148px;
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.75));
+            border: 1px solid rgba(148, 163, 184, 0.12);
+            border-radius: 14px;
+            overflow: hidden;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .flow-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(34, 197, 94, 0.35);
+        }
+
+        .flow-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            margin-bottom: 12px;
+            border-radius: 9px;
+            background: rgba(34, 197, 94, 0.12);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+        }
+
+        .flow-card h3 {
+            font-size: 13px;
+            line-height: 1.35;
+            font-weight: 700;
+            color: #f8fafc;
+            margin: 0 0 6px 0;
+        }
+
+        .flow-card p {
+            font-size: 11px;
+            line-height: 1.55;
+            color: #94a3b8;
+            margin: 0;
+        }
+
+        .flow-arrow {
+            position: absolute;
+            top: 22px;
+            right: 12px;
+            color: rgba(74, 222, 128, 0.65);
+            font-size: 13px;
+        }
+
+        @media (max-width: 420px) {
+            .flow-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .flow-card {
+                min-height: auto;
+            }
+
+            .flow-arrow {
+                display: none;
+            }
+        }
+
         .footer-help {
             padding: 16px;
             background: rgba(34, 197, 94, 0.05);
@@ -250,6 +350,43 @@
             <h1>Aktivasi Kartu</h1>
             <p>Isi formulir untuk mengaktifkan NFC card Anda</p>
         </div>
+
+
+        <section class="flow-section" aria-labelledby="flowTitle">
+            <div class="flow-heading">
+                <h2 id="flowTitle">Alur Sederhana &amp; Otomatis</h2>
+                <p>Satu kartu. Satu tap. Pelanggan lebih mudah memberikan review.</p>
+            </div>
+
+            <div class="flow-grid">
+                <article class="flow-card">
+                    <span class="flow-number">01</span>
+                    <span class="flow-arrow">→</span>
+                    <h3>Kartu Siap Digunakan</h3>
+                    <p>NFC Card dipersonalisasi untuk bisnis Anda dan siap ditempatkan di kasir, meja, atau counter.</p>
+                </article>
+
+                <article class="flow-card">
+                    <span class="flow-number">02</span>
+                    <span class="flow-arrow">→</span>
+                    <h3>Terhubung ke Google Bisnis</h3>
+                    <p>Kartu dihubungkan ke profil Google Business yang tepat sehingga pelanggan diarahkan ke halaman review.</p>
+                </article>
+
+                <article class="flow-card">
+                    <span class="flow-number">03</span>
+                    <span class="flow-arrow">→</span>
+                    <h3>Tap atau Scan</h3>
+                    <p>Pelanggan cukup tap NFC atau scan QR Code. Tidak perlu mencari nama bisnis di Google.</p>
+                </article>
+
+                <article class="flow-card">
+                    <span class="flow-number">04</span>
+                    <h3>Review Masuk</h3>
+                    <p>Pelanggan memberikan ulasan langsung dari smartphone. Anda tinggal memantau pertumbuhan review.</p>
+                </article>
+            </div>
+        </section>
 
         <form id="nfcForm">
             <div class="form-group">
