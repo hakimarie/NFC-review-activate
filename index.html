@@ -14,6 +14,9 @@
       gtag('config', 'G-XW8BYXLSNB');
     </script>
     
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0"></script>
+    
     <style>
         * {
             margin: 0;
@@ -306,6 +309,11 @@
     </div>
 
     <script>
+        // Supabase initialization
+        const SUPABASE_URL = 'https://bjoinxzfddwpjkljbyr.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_O47NBwd2a7Px7CE1SSU0Mw_I78zGoMj';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
         const form = document.getElementById('nfcForm');
         const container = document.getElementById('mainContainer');
         const businessNameInput = document.getElementById('businessName');
@@ -323,22 +331,45 @@
             window.history.replaceState({}, document.title, window.location.pathname);
         }
 
-        // Check localStorage on page load
-        window.addEventListener('load', () => {
-            const savedData = localStorage.getItem('nfcActivationData');
-            if (savedData) {
-                try {
-                    const data = JSON.parse(savedData);
-                    console.log('Found saved activation data, redirecting...');
-                    window.location.href = data.googleReviewUrl;
-                } catch (err) {
-                    console.log('Error parsing saved data');
-                    container.classList.add('visible');
+        // Check Supabase on page load (global check)
+        async function checkActivationStatus() {
+            try {
+                // Check if PIN is in URL or try to get from localStorage first
+                const localSavedData = localStorage.getItem('nfcActivationData');
+                let pinToCheck = null;
+
+                if (localSavedData) {
+                    try {
+                        const data = JSON.parse(localSavedData);
+                        pinToCheck = data.pin;
+                    } catch (e) {}
                 }
-            } else {
+
+                // If we have a PIN, check Supabase
+                if (pinToCheck) {
+                    const { data, error } = await supabase
+                        .from('nfc_activations')
+                        .select('*')
+                        .eq('pin', pinToCheck)
+                        .single();
+
+                    if (data && data.id) {
+                        console.log('Found activation in Supabase, redirecting...');
+                        window.location.href = `https://search.google.com/local/writereview?placeid=${data.place_id}&utm_source=nfc&utm_medium=card&utm_campaign=${data.pin}`;
+                        return;
+                    }
+                }
+
+                // Show form if no activation found
+                container.classList.add('visible');
+            } catch (err) {
+                console.log('Supabase check error:', err);
                 container.classList.add('visible');
             }
-        });
+        }
+
+        // Run check on load
+        window.addEventListener('load', checkActivationStatus);
 
         // PIN validation - only numbers
         pinInput.addEventListener('input', (e) => {
@@ -391,6 +422,22 @@
                     redirectUrl: googleReviewUrl,
                 });
 
+                // Save to Supabase (global database)
+                const { error: supabaseError } = await supabase
+                    .from('nfc_activations')
+                    .insert([
+                        {
+                            pin: pin,
+                            place_id: placeId,
+                            business_name: businessName
+                        }
+                    ]);
+
+                if (supabaseError) {
+                    console.log('Supabase error (might be duplicate):', supabaseError);
+                    // Continue anyway - might be duplicate PIN
+                }
+
                 // Send tracking to Google Sheets
                 fetch('https://script.google.com/macros/s/AKfycby6jiT6s5OdrFuh2ZW_aDUGGxswPK2pvFqlnqmQaLtumCDN3gpy49GTR6yiDmY565GmEQ/exec', {
                     method: 'POST',
@@ -412,7 +459,7 @@
                 submitBtn.classList.add('success');
                 submitBtn.innerHTML = '<span>✓</span><span>Berhasil! Mengalihkan...</span>';
 
-                // Save to localStorage
+                // Save to localStorage as backup
                 localStorage.setItem('nfcActivationData', JSON.stringify({
                     businessName: businessName,
                     placeId: placeId,
