@@ -39,7 +39,6 @@ create unique index if not exists one_active_assignment_per_card
 create index if not exists cards_card_code_idx on public.cards(card_code);
 create index if not exists card_assignments_card_id_idx on public.card_assignments(card_id);
 
--- Public resolver: QR/NFC visitors only need to know where the card points.
 create or replace function public.resolve_card(p_card_code text)
 returns table (
   card_code text,
@@ -51,21 +50,15 @@ language sql
 security definer
 set search_path = public
 as $$
-  select
-    c.card_code,
-    c.status,
-    b.business_name,
-    b.review_url
+  select c.card_code, c.status, b.business_name, b.review_url
   from public.cards c
   left join public.card_assignments ca
     on ca.card_id = c.id and ca.status = 'ACTIVE'
-  left join public.businesses b
-    on b.id = ca.business_id
+  left join public.businesses b on b.id = ca.business_id
   where upper(c.card_code) = upper(trim(p_card_code))
   limit 1;
 $$;
 
--- Activation is atomic: only AVAILABLE cards can be activated.
 create or replace function public.activate_card(
   p_card_code text,
   p_business_name text,
@@ -82,37 +75,20 @@ declare
   v_business_id uuid;
   v_review_url text;
 begin
-  if trim(p_card_code) = '' then
-    raise exception 'Kode kartu wajib diisi';
-  end if;
-
-  if trim(p_business_name) = '' then
-    raise exception 'Nama bisnis wajib diisi';
-  end if;
-
-  if trim(p_place_id) = '' then
-    raise exception 'Google Place ID wajib diisi';
-  end if;
-
-  if p_pin !~ '^\\d{4}$' then
-    raise exception 'PIN harus 4 digit';
-  end if;
+  if trim(p_card_code) = '' then raise exception 'Kode kartu wajib diisi'; end if;
+  if trim(p_business_name) = '' then raise exception 'Nama bisnis wajib diisi'; end if;
+  if trim(p_place_id) = '' then raise exception 'Google Place ID wajib diisi'; end if;
+  if p_pin !~ '^[0-9]{4}$' then raise exception 'PIN harus 4 digit'; end if;
 
   select * into v_card
   from public.cards
   where upper(card_code) = upper(trim(p_card_code))
   for update;
 
-  if not found then
-    raise exception 'Kode kartu tidak ditemukan';
-  end if;
+  if not found then raise exception 'Kode kartu tidak ditemukan'; end if;
+  if v_card.status <> 'AVAILABLE' then raise exception 'Kartu sudah aktif atau tidak tersedia'; end if;
 
-  if v_card.status <> 'AVAILABLE' then
-    raise exception 'Kartu sudah aktif atau tidak tersedia';
-  end if;
-
-  v_review_url := 'https://search.google.com/local/writereview?placeid='
-    || trim(p_place_id);
+  v_review_url := 'https://search.google.com/local/writereview?placeid=' || trim(p_place_id);
 
   insert into public.businesses (business_name, place_id, review_url)
   values (trim(p_business_name), trim(p_place_id), v_review_url)
@@ -122,9 +98,7 @@ begin
   values (v_card.id, v_business_id, crypt(p_pin, gen_salt('bf')));
 
   update public.cards
-  set status = 'ACTIVE',
-      activated_at = now(),
-      updated_at = now()
+  set status = 'ACTIVE', activated_at = now(), updated_at = now()
   where id = v_card.id;
 
   return json_build_object(
@@ -136,7 +110,6 @@ begin
 end;
 $$;
 
--- Bulk card generator. Keep EXECUTE restricted to authenticated/admin users later.
 create or replace function public.generate_cards(p_quantity integer, p_prefix text default 'KT')
 returns integer
 language plpgsql
@@ -160,18 +133,15 @@ begin
           else 0
         end
       ), 0) + 1)::text,
-      6,
-      '0'
+      6, '0'
     )
     from public.cards
     where card_code like upper(trim(p_prefix)) || '%';
   end loop;
-
   return p_quantity;
 end;
 $$;
 
--- Remove direct table access from anonymous visitors.
 alter table public.cards enable row level security;
 alter table public.businesses enable row level security;
 alter table public.card_assignments enable row level security;
@@ -182,6 +152,4 @@ revoke all on public.card_assignments from anon, authenticated;
 
 grant execute on function public.resolve_card(text) to anon, authenticated;
 grant execute on function public.activate_card(text,text,text,text) to anon, authenticated;
-
--- Do NOT grant generate_cards to anon.
 grant execute on function public.generate_cards(integer,text) to authenticated;
