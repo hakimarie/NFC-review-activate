@@ -1,8 +1,8 @@
 {
-  "routes": [
+  "rewrites": [
     {
-      "src": "^/r/([^/]+)/?$",
-      "dest": "/index.html?card=$1"
+      "source": "/r/:card",
+      "destination": "/index.html"
     }
   ]
 }
