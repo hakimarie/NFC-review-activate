@@ -1,5 +1,8 @@
 {
   "routes": [
-    { "src": "^/r/([^/]+)/?$", "dest": "/index.html" }
+    {
+      "src": "^/r/([^/]+)/?$",
+      "dest": "/index.html?card=$1"
+    }
   ]
 }
