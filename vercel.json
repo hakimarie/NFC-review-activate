@@ -1,5 +1,5 @@
 {
-  "rewrites": [
-    { "source": "/r/:cardCode", "destination": "/index.html" }
+  "routes": [
+    { "src": "^/r/([^/]+)/?$", "dest": "/index.html" }
   ]
 }
