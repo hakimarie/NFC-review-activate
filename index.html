@@ -423,7 +423,7 @@
                     inputmode="numeric"
                     required
                 >
-                <p class="form-hint">Digunakan untuk tracking & analytics</p>
+                <p class="form-hint">PIN ini digunakan untuk keamanan saat pengelolaan kartu.</p>
             </div>
 
             <div id="errorMessage" class="error-message">
@@ -438,15 +438,14 @@
         </form>
 
         <div class="footer-help">
-            <p>💡 Belum punya Place ID?</p>
-            <p>Cari nama bisnis Anda di Google Maps, copy ID dari URL atau hubungi admin.</p>
+            <p>💡 Kartu belum aktif?</p>
+            <p>Aktivasi dilakukan melalui QR atau NFC kartu. Jika membutuhkan bantuan, hubungi admin KetemuTerus.</p>
         </div>
 
         <button id="clearBtn" class="clear-btn">🔄 Clear Saved Data</button>
     </div>
 
     <script>
-        // Supabase initialization
         const SUPABASE_URL = 'https://bjoinxzfddwpjkijjbyr.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_O47NBwd2a7Px7CE1SSU0Mw_I78zGoMj';
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -461,207 +460,180 @@
         const errorMessage = document.getElementById('errorMessage');
         const errorText = document.getElementById('errorText');
 
-        // Check URL parameter for clear
-const urlParams = new URLSearchParams(window.location.search);
-if (urlParams.get('clear') === 'true') {
-    localStorage.removeItem('nfcActivationData');
-    window.history.replaceState({}, document.title, window.location.pathname);
-}
-
-// Check if PIN is in URL (NFC card with programmed PIN)
-const pinFromUrl = urlParams.get('pin');
-if (pinFromUrl && pinFromUrl.length === 4) {
-    // Skip form, query Supabase directly with PIN from URL
-    checkActivationByPin(pinFromUrl);
-}
-
-        // Check Supabase on page load (global check)
-async function checkActivationStatus() {
-    try {
-        // Check if PIN is in URL or try to get from localStorage first
-        const localSavedData = localStorage.getItem('nfcActivationData');
-        let pinToCheck = null;
-
-        // Priority: URL PIN > localStorage PIN
-        if (pinFromUrl) {
-            pinToCheck = pinFromUrl;
-        } else if (localSavedData) {
-            try {
-                const data = JSON.parse(localSavedData);
-                pinToCheck = data.pin;
-            } catch (e) {}
+        // The card identity comes from /r/KT000001.
+        // The Card Code is not printed on the physical card; it only lives in the QR/NFC URL.
+        function getCardCodeFromPath() {
+            const match = window.location.pathname.match(/^\/r\/([^/]+)\/?$/i);
+            return match ? decodeURIComponent(match[1]).trim().toUpperCase() : null;
         }
 
-        // If we have a PIN, check Supabase
-        if (pinToCheck) {
-            const { data, error } = await supabase
-                .from('nfc_activations')
-                .select('*')
-                .eq('pin', pinToCheck)
-                .single();
-
-            if (data && data.id) {
-                console.log('Found activation in Supabase, redirecting...');
-                window.location.href = `https://search.google.com/local/writereview?placeid=${data.place_id}&utm_source=nfc&utm_medium=card&utm_campaign=${data.pin}`;
-                return;
-            }
-        }
-
-        // Show form if no activation found
-        container.classList.add('visible');
-    } catch (err) {
-        console.log('Supabase check error:', err);
-        container.classList.add('visible');
-    }
-}
-
-// Check by PIN (called from URL parameter)
-async function checkActivationByPin(pin) {
-    try {
-        const { data, error } = await supabase
-            .from('nfc_activations')
-            .select('*')
-            .eq('pin', pin)
-            .single();
-
-        if (data && data.id) {
-            console.log('Found activation by URL PIN, redirecting...');
-            window.location.href = `https://search.google.com/local/writereview?placeid=${data.place_id}&utm_source=nfc&utm_medium=card&utm_campaign=${data.pin}`;
-            return;
-        }
-        
-        // PIN not found, show form
-        container.classList.add('visible');
-    } catch (err) {
-        console.log('PIN check error:', err);
-        container.classList.add('visible');
-    }
-}
-
-// Run check on load
-window.addEventListener('load', checkActivationStatus);
-
-        // PIN validation - only numbers
-        pinInput.addEventListener('input', (e) => {
-            e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4);
-        });
-
-        // Form submit
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            errorMessage.classList.remove('show');
-            errorText.textContent = '';
-
-            if (!businessNameInput.value.trim()) {
-                showError('Nama bisnis harus diisi');
-                return;
-            }
-            if (!placeIdInput.value.trim()) {
-                showError('Google Place ID harus diisi');
-                return;
-            }
-            if (pinInput.value.length !== 4) {
-                showError('PIN harus 4 digit');
-                return;
-            }
-
-            submitBtn.disabled = true;
-            submitBtn.classList.add('loading');
-            submitBtn.innerHTML = '<div class="spinner"></div><span>Memproses...</span>';
-
-            try {
-                const businessName = businessNameInput.value;
-                const placeId = placeIdInput.value;
-                const pin = pinInput.value;
-
-                const trackingParams = new URLSearchParams({
-                    utm_source: 'nfc',
-                    utm_medium: 'card',
-                    utm_campaign: pin,
-                    utm_content: businessName.toLowerCase().replace(/\s+/g, '-'),
-                });
-
-                const googleReviewUrl = `https://search.google.com/local/writereview?placeid=${placeId}&${trackingParams.toString()}`;
-
-                console.log('NFC Review Activation:', {
-                    timestamp: new Date().toISOString(),
-                    businessName: businessName,
-                    placeId: placeId,
-                    cardId: pin,
-                    redirectUrl: googleReviewUrl,
-                });
-
-                // Save to Supabase (global database)
-                const { error: supabaseError } = await supabase
-                    .from('nfc_activations')
-                    .insert([
-                        {
-                            pin: pin,
-                            place_id: placeId,
-                            business_name: businessName
-                        }
-                    ]);
-
-                if (supabaseError) {
-                    console.log('Supabase error (might be duplicate):', supabaseError);
-                    // Continue anyway - might be duplicate PIN
-                }
-
-                // Send tracking to Google Sheets
-                fetch('https://script.google.com/macros/s/AKfycby6jiT6s5OdrFuh2ZW_aDUGGxswPK2pvFqlnqmQaLtumCDN3gpy49GTR6yiDmY565GmEQ/exec', {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        businessName: businessName,
-                        placeId: placeId,
-                        pin: pin
-                    })
-                }).catch(err => console.log('Tracking sent'));
-
-                // Track GA event
-                gtag('event', 'nfc_activation', {
-                    'business_name': businessName,
-                    'place_id': placeId,
-                    'pin': pin
-                });
-
-                submitBtn.classList.remove('loading');
-                submitBtn.classList.add('success');
-                submitBtn.innerHTML = '<span>✓</span><span>Berhasil! Mengalihkan...</span>';
-
-                // Save to localStorage as backup
-                localStorage.setItem('nfcActivationData', JSON.stringify({
-                    businessName: businessName,
-                    placeId: placeId,
-                    pin: pin,
-                    googleReviewUrl: googleReviewUrl,
-                    timestamp: new Date().toISOString()
-                }));
-
-                setTimeout(() => {
-                    window.location.href = googleReviewUrl;
-                }, 1500);
-
-            } catch (err) {
-                showError('Terjadi kesalahan. Silakan coba lagi.');
-                submitBtn.disabled = false;
-                submitBtn.classList.remove('loading');
-                submitBtn.innerHTML = '<span>Aktivkan Kartu</span><span>→</span>';
-            }
-        });
-
-        // Clear button
-        clearBtn.addEventListener('click', () => {
-            if (confirm('Hapus data yang disimpan? Anda perlu isi form lagi di scan berikutnya.')) {
-                localStorage.removeItem('nfcActivationData');
-                alert('Data cleared. Form siap untuk aktivasi baru.');
-            }
-        });
+        const cardCode = getCardCodeFromPath();
 
         function showError(message) {
             errorText.textContent = message;
             errorMessage.classList.add('show');
         }
+
+        function setLoading(isLoading) {
+            submitBtn.disabled = isLoading;
+            if (isLoading) {
+                submitBtn.innerHTML = '<div class="spinner"></div><span>Memproses...</span>';
+            } else {
+                submitBtn.innerHTML = '<span>Aktivkan Kartu</span><span>→</span>';
+            }
+        }
+
+        function showActivationForm(card) {
+            container.classList.add('visible');
+
+            // Keep the physical card code hidden from the user interface.
+            const header = container.querySelector('.header h1');
+            const subtitle = container.querySelector('.header p');
+            if (header) header.textContent = 'Aktivasi Kartu';
+            if (subtitle) subtitle.textContent = 'Kartu siap dihubungkan ke Google Business Anda';
+
+            const clearText = document.querySelector('.footer-help p:last-child');
+            if (clearText) {
+                clearText.textContent = 'Masukkan data bisnis dan buat PIN 4 digit untuk mengaktifkan kartu ini.';
+            }
+        }
+
+        async function resolveCard() {
+            if (!cardCode) {
+                container.classList.add('visible');
+                return;
+            }
+
+            try {
+                const { data, error } = await supabase.rpc('resolve_card', {
+                    p_card_code: cardCode
+                });
+
+                if (error) throw error;
+
+                const card = Array.isArray(data) ? data[0] : data;
+
+                if (!card) {
+                    container.classList.add('visible');
+                    showError('Kartu tidak ditemukan. Pastikan QR/NFC berasal dari kartu KetemuTerus yang valid.');
+                    return;
+                }
+
+                if (card.status === 'ACTIVE' && card.review_url) {
+                    gtag('event', 'nfc_card_redirect', {
+                        card_code: cardCode,
+                        business_name: card.business_name || ''
+                    });
+                    window.location.replace(card.review_url);
+                    return;
+                }
+
+                if (card.status === 'AVAILABLE') {
+                    showActivationForm(card);
+                    return;
+                }
+
+                container.classList.add('visible');
+                showError('Kartu sedang tidak tersedia. Silakan hubungi admin KetemuTerus.');
+            } catch (err) {
+                console.error('Card resolution error:', err);
+                container.classList.add('visible');
+                showError('Kartu belum dapat diperiksa. Silakan coba lagi.');
+            }
+        }
+
+        pinInput.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/\\D/g, '').slice(0, 4);
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            errorMessage.classList.remove('show');
+            errorText.textContent = '';
+
+            if (!cardCode) {
+                showError('Halaman aktivasi harus dibuka melalui QR atau NFC kartu.');
+                return;
+            }
+
+            const businessName = businessNameInput.value.trim();
+            const placeId = placeIdInput.value.trim();
+            const pin = pinInput.value.trim();
+
+            if (!businessName) {
+                showError('Nama bisnis harus diisi');
+                return;
+            }
+
+            if (!placeId) {
+                showError('Google Place ID harus diisi');
+                return;
+            }
+
+            if (!/^\\d{4}$/.test(pin)) {
+                showError('PIN harus 4 digit angka');
+                return;
+            }
+
+            setLoading(true);
+
+            try {
+                const { data, error } = await supabase.rpc('activate_card', {
+                    p_card_code: cardCode,
+                    p_business_name: businessName,
+                    p_place_id: placeId,
+                    p_pin: pin
+                });
+
+                if (error) throw error;
+
+                const result = Array.isArray(data) ? data[0] : data;
+
+                gtag('event', 'nfc_activation', {
+                    card_code: cardCode,
+                    business_name: businessName
+                });
+
+                // Optional analytics backup. It is not used as the source of truth.
+                fetch('https://script.google.com/macros/s/AKfycby6jiT6s5OdrFuh2ZW_aDUGGxswPK2pvFqlnqmQaLtumCDN3gpy49GTR6yiDmY565GmEQ/exec', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        businessName: businessName,
+                        placeId: placeId,
+                        cardCode: cardCode
+                    })
+                }).catch(() => {});
+
+                localStorage.setItem('nfcActivationData', JSON.stringify({
+                    cardCode: cardCode,
+                    businessName: businessName,
+                    placeId: placeId,
+                    timestamp: new Date().toISOString()
+                }));
+
+                submitBtn.classList.add('success');
+                submitBtn.innerHTML = '<span>✓</span><span>Berhasil! Mengalihkan...</span>';
+
+                const reviewUrl = result?.review_url;
+                if (reviewUrl) {
+                    setTimeout(() => window.location.replace(reviewUrl), 800);
+                } else {
+                    setTimeout(() => window.location.reload(), 800);
+                }
+            } catch (err) {
+                console.error('Activation error:', err);
+                showError(err?.message || 'Aktivasi gagal. Pastikan data benar dan kartu belum pernah diaktifkan.');
+                setLoading(false);
+            }
+        });
+
+        clearBtn.addEventListener('click', () => {
+            localStorage.removeItem('nfcActivationData');
+            alert('Data lokal dihapus. Data aktivasi kartu di server tetap tersimpan.');
+        });
+
+        window.addEventListener('load', resolveCard);
     </script>
 </body>
 </html>
