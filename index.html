@@ -194,40 +194,24 @@
         const errorText = document.getElementById('errorText');
 
         // Card identity is carried by the QR/NFC URL.
-        // Primary format: /r/KT000001
-        // Fallback format: ?card=KT000001
-        function getCardCode() {
-            async function logCardScan(cardCode) {
-    try {
-        const source =
-            /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
-                ? 'mobile'
-                : 'desktop';
+// Primary format: /r/KT000001
+// Fallback format: ?card=KT000001
+function getCardCode() {
+    const pathMatch = window.location.pathname.match(/\/r\/([^/]+)\/?$/i);
 
-        await supabase.rpc('log_card_scan', {
-            p_card_code: cardCode,
-            p_source: source,
-            p_user_agent: navigator.userAgent
-        });
-    } catch (error) {
-        console.warn('Scan tracking gagal:', error);
+    if (pathMatch) {
+        return decodeURIComponent(pathMatch[1]).trim().toUpperCase();
     }
+
+    const params = new URLSearchParams(window.location.search);
+    const queryCard = params.get('card');
+
+    if (queryCard) {
+        return queryCard.trim().toUpperCase();
+    }
+
+    return null;
 }
-            const pathMatch = window.location.pathname.match(/\/r\/([^/]+)\/?$/i);
-            if (pathMatch) {
-                return decodeURIComponent(pathMatch[1]).trim().toUpperCase();
-            }
-
-            const params = new URLSearchParams(window.location.search);
-            const queryCard = params.get('card');
-            if (queryCard) {
-                return queryCard.trim().toUpperCase();
-            }
-
-            return null;
-        }
-
-        const cardCode = getCardCode();
 
 async function logCardScan(cardCode) {
     try {
@@ -245,6 +229,8 @@ async function logCardScan(cardCode) {
         console.warn('Scan tracking gagal:', error);
     }
 }
+
+const cardCode = getCardCode();
 
 if (cardCode) {
     logCardScan(cardCode);
