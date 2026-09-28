@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KetemuTerus Admin</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0"></script>
+
+<style>
+*{box-sizing:border-box}
+body{font-family:Arial,sans-serif;background:#f3f4f6;padding:30px}
+.card{max-width:400px;margin:100px auto;background:#fff;padding:25px;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.1)}
+h1{text-align:center;margin-top:0}
+label{display:block;margin-top:16px;font-weight:600}
+input{width:100%;padding:12px;margin-top:6px;border:1px solid #ddd;border-radius:8px;font-size:16px}
+button{width:100%;margin-top:20px;padding:12px;background:#222;color:#fff;border:0;border-radius:8px;font-size:16px;cursor:pointer}
+.error{color:#dc3545;margin-top:10px}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+<h1>Ketemu Terus Admin</h1>
+
+<label>Email</label>
+<input id="email" type="email" autocomplete="email">
+
+<label>Password</label>
+<input id="password" type="password" autocomplete="current-password">
+
+<button id="login">Login</button>
+
+<p class="error" id="error"></p>
+</div>
+
+<script>
+const SUPABASE_URL='https://bjoinxzfddwpjkijjbyr.supabase.co';
+const SUPABASE_KEY='sb_publishable_O47NBwd2a7Px7CE1SSU0Mw_I78zGoMj';
+
+const supabase=window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
+document.getElementById('login').addEventListener('click',async()=>{
+  const email=document.getElementById('email').value.trim();
+  const password=document.getElementById('password').value;
+
+  const {error}=await supabase.auth.signInWithPassword({
+    email,
+    password
+  });
+
+  if(error){
+    document.getElementById('error').textContent=error.message;
+    return;
+  }
+
+  window.location.href='/admin/dashboard.html';
+});
+</script>
+
+</body>
+</html>
