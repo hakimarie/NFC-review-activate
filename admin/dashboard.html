@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KetemuTerus - Dashboard</title>
+<title>KetemuTerus Admin Dashboard</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0"></script>
 
@@ -14,123 +14,188 @@ body{
   margin:0;
   font-family:Arial,sans-serif;
   background:#f3f4f6;
-  color:#222;
+  color:#111827;
 }
 
 header{
-  background:#222;
-  color:#fff;
-  padding:18px 25px;
+  background:#fff;
+  border-bottom:1px solid #e5e7eb;
+  padding:18px 30px;
   display:flex;
   justify-content:space-between;
   align-items:center;
 }
 
-header h1{
-  margin:0;
-  font-size:20px;
+.logo{
+  font-size:22px;
+  font-weight:700;
+}
+
+.logo span{
+  color:#2563eb;
 }
 
 button{
   border:0;
   border-radius:8px;
-  padding:11px 16px;
+  padding:10px 16px;
   cursor:pointer;
   font-size:14px;
 }
 
 .logout{
-  background:#fff;
-  color:#222;
+  background:#111827;
+  color:#fff;
 }
 
 .container{
-  max-width:1000px;
+  max-width:1200px;
   margin:30px auto;
   padding:0 20px;
 }
 
-.card{
-  background:#fff;
-  border-radius:12px;
-  padding:22px;
-  margin-bottom:20px;
-  box-shadow:0 2px 8px rgba(0,0,0,.08);
-}
-
-h2{
-  margin-top:0;
+h1{
+  margin-bottom:25px;
 }
 
 .stats{
   display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:15px;
+  grid-template-columns:repeat(4,1fr);
+  gap:16px;
+  margin-bottom:25px;
 }
 
 .stat{
-  background:#f8f8f8;
-  padding:18px;
-  border-radius:10px;
+  background:#fff;
+  padding:20px;
+  border-radius:12px;
+  box-shadow:0 2px 8px rgba(0,0,0,.05);
 }
 
-.stat strong{
-  display:block;
+.stat-label{
+  color:#6b7280;
+  font-size:14px;
+}
+
+.stat-value{
   font-size:28px;
-  margin-top:5px;
+  font-weight:700;
+  margin-top:8px;
+}
+
+.panel{
+  background:#fff;
+  padding:20px;
+  border-radius:12px;
+  margin-bottom:25px;
+  box-shadow:0 2px 8px rgba(0,0,0,.05);
+}
+
+.panel h2{
+  margin-top:0;
+}
+
+.form-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr auto;
+  gap:12px;
+  align-items:end;
+}
+
+label{
+  display:block;
+  font-weight:600;
+  font-size:13px;
+  margin-bottom:6px;
 }
 
 input{
   width:100%;
   padding:11px;
-  margin-top:6px;
-  margin-bottom:14px;
-  border:1px solid #ddd;
+  border:1px solid #d1d5db;
   border-radius:8px;
-  font-size:15px;
+  font-size:14px;
 }
 
 .primary{
-  background:#222;
+  background:#2563eb;
   color:#fff;
+}
+
+.message{
+  margin-top:12px;
+  font-size:14px;
 }
 
 .success{
   color:#198754;
-  margin-top:12px;
 }
 
 .error{
   color:#dc3545;
-  margin-top:12px;
+}
+
+.table-wrap{
+  overflow-x:auto;
 }
 
 table{
   width:100%;
   border-collapse:collapse;
-  margin-top:15px;
+  min-width:800px;
 }
 
 th,td{
-  padding:11px;
-  border-bottom:1px solid #eee;
+  padding:12px;
+  border-bottom:1px solid #e5e7eb;
   text-align:left;
+  font-size:13px;
+}
+
+th{
+  background:#f9fafb;
 }
 
 .badge{
+  display:inline-block;
   padding:5px 9px;
   border-radius:20px;
   font-size:12px;
-  background:#eee;
+  font-weight:600;
 }
 
-@media(max-width:700px){
+.available{
+  background:#dcfce7;
+  color:#166534;
+}
+
+.active{
+  background:#dbeafe;
+  color:#1d4ed8;
+}
+
+.suspended{
+  background:#fee2e2;
+  color:#991b1b;
+}
+
+.empty{
+  color:#6b7280;
+  text-align:center;
+  padding:30px;
+}
+
+@media(max-width:800px){
   .stats{
+    grid-template-columns:1fr 1fr;
+  }
+
+  .form-grid{
     grid-template-columns:1fr;
   }
 
-  table{
-    font-size:13px;
+  header{
+    padding:15px;
   }
 }
 </style>
@@ -139,72 +204,153 @@ th,td{
 <body>
 
 <header>
-  <h1>KetemuTerus Admin</h1>
-  <button class="logout" id="logout">Logout</button>
+  <div class="logo">
+    Ketemu<span>Terus</span> Admin
+  </div>
+
+  <button class="logout" id="logout">
+    Logout
+  </button>
 </header>
 
 <div class="container">
 
-  <div class="card">
-    <h2>Inventory Kartu</h2>
+<h1>Dashboard</h1>
 
-    <div class="stats">
-      <div class="stat">
-        AVAILABLE
-        <strong id="availableCount">-</strong>
-      </div>
+<div class="stats">
 
-      <div class="stat">
-        ACTIVE
-        <strong id="activeCount">-</strong>
-      </div>
-
-      <div class="stat">
-        SUSPENDED
-        <strong id="suspendedCount">-</strong>
-      </div>
-    </div>
+  <div class="stat">
+    <div class="stat-label">Total Kartu</div>
+    <div class="stat-value" id="total">-</div>
   </div>
 
-  <div class="card">
-    <h2>Generate Kartu</h2>
-
-    <label>Jumlah kartu</label>
-    <input id="quantity" type="number" value="50" min="1" max="10000">
-
-    <label>Prefix</label>
-    <input id="prefix" value="KTKT">
-
-    <button class="primary" id="generate">
-      Generate Kartu
-    </button>
-
-    <div id="generateMessage"></div>
+  <div class="stat">
+    <div class="stat-label">Available</div>
+    <div class="stat-value" id="available">-</div>
   </div>
 
-  <div class="card">
-    <h2>Aktivasi Kartu</h2>
+  <div class="stat">
+    <div class="stat-label">Active</div>
+    <div class="stat-value" id="active">-</div>
+  </div>
 
-    <label>Kode Kartu</label>
-    <input id="cardCode" placeholder="Contoh: KTKT000001">
-
-    <label>Nama Bisnis</label>
-    <input id="businessName" placeholder="Contoh: Soto Mie Bogor Kang Hendi">
-
-    <label>Google Place ID</label>
-    <input id="placeId" placeholder="Contoh: ChIJ...">
-
-    <label>PIN 4 Digit</label>
-    <input id="pin" type="password" maxlength="4" inputmode="numeric">
-
-    <button class="primary" id="activate">
-      Aktifkan Kartu
-    </button>
-
-    <div id="activateMessage"></div>
+  <div class="stat">
+    <div class="stat-label">Suspended</div>
+    <div class="stat-value" id="suspended">-</div>
   </div>
 
 </div>
+
+
+<div class="panel">
+
+<h2>Generate Kartu</h2>
+
+<div class="form-grid">
+
+  <div>
+    <label>Jumlah</label>
+    <input id="quantity" type="number" value="50" min="1">
+  </div>
+
+  <div>
+    <label>Prefix</label>
+    <input id="prefix" type="text" value="KT">
+  </div>
+
+  <button class="primary" id="generate">
+    Generate
+  </button>
+
+</div>
+
+<p id="generateMessage" class="message"></p>
+
+</div>
+
+
+<div class="panel">
+
+<h2>Aktivasi Kartu</h2>
+
+<div class="form-grid">
+
+  <div>
+    <label>Card Code</label>
+    <input id="cardCode" placeholder="KT000001">
+  </div>
+
+  <div>
+    <label>Nama Bisnis</label>
+    <input id="businessName" placeholder="Nama bisnis">
+  </div>
+
+  <div>
+    <button class="primary" id="activate">
+      Aktivasi
+    </button>
+  </div>
+
+</div>
+
+<div style="margin-top:12px">
+
+  <label>Google Place ID</label>
+  <input id="placeId" placeholder="ChIJ...">
+
+</div>
+
+<div style="margin-top:12px">
+
+  <label>PIN 4 Digit</label>
+  <input id="pin" type="password" maxlength="4" placeholder="1234">
+
+</div>
+
+<p id="activateMessage" class="message"></p>
+
+</div>
+
+
+<div class="panel">
+
+<h2>Inventory Kartu</h2>
+
+<div class="table-wrap">
+
+<table>
+
+<thead>
+
+<tr>
+  <th>Card Code</th>
+  <th>Status</th>
+  <th>Business</th>
+  <th>Place ID</th>
+  <th>Review URL</th>
+  <th>Activated</th>
+</tr>
+
+</thead>
+
+<tbody id="inventory">
+
+<tr>
+  <td colspan="6" class="empty">
+    Memuat inventory...
+  </td>
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+</div>
+
 
 <script>
 
@@ -217,40 +363,169 @@ const supabase=window.supabase.createClient(
   SUPABASE_KEY
 );
 
-async function checkLogin(){
 
-  const {
-    data:{session}
-  } = await supabase.auth.getSession();
+/* AUTH */
 
-  if(!session){
+async function checkAuth(){
+
+  const {data,error}=await supabase.auth.getSession();
+
+  if(error || !data.session){
+
     window.location.href='/admin/';
     return false;
+
   }
 
   return true;
 }
 
-document.getElementById('logout').addEventListener('click',async()=>{
 
-  await supabase.auth.signOut();
+/* LOAD INVENTORY */
 
-  window.location.href='/admin/';
+async function loadInventory(){
 
-});
+  const {data,error}=await supabase.rpc('list_cards');
 
-document.getElementById('generate').addEventListener('click',async()=>{
+  const inventory=document.getElementById('inventory');
+
+  if(error){
+
+    inventory.innerHTML=`
+      <tr>
+        <td colspan="6" class="empty">
+          Gagal memuat inventory: ${escapeHtml(error.message)}
+        </td>
+      </tr>
+    `;
+
+    return;
+
+  }
+
+  const cards=data || [];
+
+  let available=0;
+  let active=0;
+  let suspended=0;
+
+  cards.forEach(card=>{
+
+    if(card.status==='AVAILABLE') available++;
+    if(card.status==='ACTIVE') active++;
+    if(card.status==='SUSPENDED') suspended++;
+
+  });
+
+  document.getElementById('total').textContent=cards.length;
+  document.getElementById('available').textContent=available;
+  document.getElementById('active').textContent=active;
+  document.getElementById('suspended').textContent=suspended;
+
+  if(cards.length===0){
+
+    inventory.innerHTML=`
+      <tr>
+        <td colspan="6" class="empty">
+          Belum ada kartu.
+        </td>
+      </tr>
+    `;
+
+    return;
+
+  }
+
+  inventory.innerHTML=cards.map(card=>{
+
+    const statusClass=
+      card.status==='ACTIVE'
+      ? 'active'
+      : card.status==='SUSPENDED'
+      ? 'suspended'
+      : 'available';
+
+    const activated=card.activated_at
+      ? new Date(card.activated_at).toLocaleString('id-ID')
+      : '-';
+
+    return `
+
+      <tr>
+
+        <td><strong>${escapeHtml(card.card_code)}</strong></td>
+
+        <td>
+          <span class="badge ${statusClass}">
+            ${escapeHtml(card.status)}
+          </span>
+        </td>
+
+        <td>
+          ${escapeHtml(card.business_name || '-')}
+        </td>
+
+        <td>
+          ${escapeHtml(card.place_id || '-')}
+        </td>
+
+        <td>
+          ${
+            card.review_url
+            ? `<a href="${escapeHtml(card.review_url)}"
+                 target="_blank"
+                 rel="noopener">
+                 Review
+               </a>`
+            : '-'
+          }
+        </td>
+
+        <td>
+          ${activated}
+        </td>
+
+      </tr>
+
+    `;
+
+  }).join('');
+
+}
+
+
+/* GENERATE */
+
+document.getElementById('generate')
+.addEventListener('click',async()=>{
 
   const quantity=parseInt(
-    document.getElementById('quantity').value
+    document.getElementById('quantity').value,
+    10
   );
 
   const prefix=document.getElementById('prefix').value.trim();
 
   const message=document.getElementById('generateMessage');
 
-  message.textContent='Memproses...';
-  message.className='';
+  message.textContent='';
+  message.className='message';
+
+  if(!quantity || quantity<1){
+
+    message.textContent='Jumlah kartu tidak valid.';
+    message.classList.add('error');
+    return;
+
+  }
+
+  if(!prefix){
+
+    message.textContent='Prefix wajib diisi.';
+    message.classList.add('error');
+    return;
+
+  }
 
   const {data,error}=await supabase.rpc(
     'generate_cards',
@@ -263,18 +538,25 @@ document.getElementById('generate').addEventListener('click',async()=>{
   if(error){
 
     message.textContent=error.message;
-    message.className='error';
+    message.classList.add('error');
     return;
 
   }
 
   message.textContent=
-    'Berhasil generate '+data+' kartu.';
-  message.className='success';
+    `Berhasil generate ${quantity} kartu.`;
+
+  message.classList.add('success');
+
+  await loadInventory();
 
 });
 
-document.getElementById('activate').addEventListener('click',async()=>{
+
+/* ACTIVATE */
+
+document.getElementById('activate')
+.addEventListener('click',async()=>{
 
   const cardCode=
     document.getElementById('cardCode').value.trim();
@@ -291,10 +573,33 @@ document.getElementById('activate').addEventListener('click',async()=>{
   const message=
     document.getElementById('activateMessage');
 
-  message.textContent='Memproses...';
-  message.className='';
+  message.textContent='';
+  message.className='message';
 
-  const {data,error}=await supabase.rpc(
+  if(!cardCode ||
+     !businessName ||
+     !placeId ||
+     !pin){
+
+    message.textContent=
+      'Semua field wajib diisi.';
+
+    message.classList.add('error');
+    return;
+
+  }
+
+  if(!/^[0-9]{4}$/.test(pin)){
+
+    message.textContent=
+      'PIN harus 4 digit.';
+
+    message.classList.add('error');
+    return;
+
+  }
+
+  const {error}=await supabase.rpc(
     'activate_card',
     {
       p_card_code:cardCode,
@@ -307,21 +612,65 @@ document.getElementById('activate').addEventListener('click',async()=>{
   if(error){
 
     message.textContent=error.message;
-    message.className='error';
+    message.classList.add('error');
     return;
 
   }
 
   message.textContent=
-    'Kartu '+data.card_code+
-    ' berhasil diaktifkan untuk '+
-    data.business_name;
+    `${cardCode} berhasil diaktifkan.`;
 
-  message.className='success';
+  message.classList.add('success');
+
+  document.getElementById('cardCode').value='';
+  document.getElementById('businessName').value='';
+  document.getElementById('placeId').value='';
+  document.getElementById('pin').value='';
+
+  await loadInventory();
 
 });
 
-checkLogin();
+
+/* LOGOUT */
+
+document.getElementById('logout')
+.addEventListener('click',async()=>{
+
+  await supabase.auth.signOut();
+
+  window.location.href='/admin/';
+
+});
+
+
+/* HTML ESCAPE */
+
+function escapeHtml(value){
+
+  return String(value)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#039;');
+
+}
+
+
+/* START */
+
+(async()=>{
+
+  const loggedIn=await checkAuth();
+
+  if(loggedIn){
+
+    await loadInventory();
+
+  }
+
+})();
 
 </script>
 
