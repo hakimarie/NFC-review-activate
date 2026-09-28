@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KetemuTerus - Dashboard</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0"></script>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#f3f4f6;
+  color:#222;
+}
+
+header{
+  background:#222;
+  color:#fff;
+  padding:18px 25px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+header h1{
+  margin:0;
+  font-size:20px;
+}
+
+button{
+  border:0;
+  border-radius:8px;
+  padding:11px 16px;
+  cursor:pointer;
+  font-size:14px;
+}
+
+.logout{
+  background:#fff;
+  color:#222;
+}
+
+.container{
+  max-width:1000px;
+  margin:30px auto;
+  padding:0 20px;
+}
+
+.card{
+  background:#fff;
+  border-radius:12px;
+  padding:22px;
+  margin-bottom:20px;
+  box-shadow:0 2px 8px rgba(0,0,0,.08);
+}
+
+h2{
+  margin-top:0;
+}
+
+.stats{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:15px;
+}
+
+.stat{
+  background:#f8f8f8;
+  padding:18px;
+  border-radius:10px;
+}
+
+.stat strong{
+  display:block;
+  font-size:28px;
+  margin-top:5px;
+}
+
+input{
+  width:100%;
+  padding:11px;
+  margin-top:6px;
+  margin-bottom:14px;
+  border:1px solid #ddd;
+  border-radius:8px;
+  font-size:15px;
+}
+
+.primary{
+  background:#222;
+  color:#fff;
+}
+
+.success{
+  color:#198754;
+  margin-top:12px;
+}
+
+.error{
+  color:#dc3545;
+  margin-top:12px;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:15px;
+}
+
+th,td{
+  padding:11px;
+  border-bottom:1px solid #eee;
+  text-align:left;
+}
+
+.badge{
+  padding:5px 9px;
+  border-radius:20px;
+  font-size:12px;
+  background:#eee;
+}
+
+@media(max-width:700px){
+  .stats{
+    grid-template-columns:1fr;
+  }
+
+  table{
+    font-size:13px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>KetemuTerus Admin</h1>
+  <button class="logout" id="logout">Logout</button>
+</header>
+
+<div class="container">
+
+  <div class="card">
+    <h2>Inventory Kartu</h2>
+
+    <div class="stats">
+      <div class="stat">
+        AVAILABLE
+        <strong id="availableCount">-</strong>
+      </div>
+
+      <div class="stat">
+        ACTIVE
+        <strong id="activeCount">-</strong>
+      </div>
+
+      <div class="stat">
+        SUSPENDED
+        <strong id="suspendedCount">-</strong>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Generate Kartu</h2>
+
+    <label>Jumlah kartu</label>
+    <input id="quantity" type="number" value="50" min="1" max="10000">
+
+    <label>Prefix</label>
+    <input id="prefix" value="KTKT">
+
+    <button class="primary" id="generate">
+      Generate Kartu
+    </button>
+
+    <div id="generateMessage"></div>
+  </div>
+
+  <div class="card">
+    <h2>Aktivasi Kartu</h2>
+
+    <label>Kode Kartu</label>
+    <input id="cardCode" placeholder="Contoh: KTKT000001">
+
+    <label>Nama Bisnis</label>
+    <input id="businessName" placeholder="Contoh: Soto Mie Bogor Kang Hendi">
+
+    <label>Google Place ID</label>
+    <input id="placeId" placeholder="Contoh: ChIJ...">
+
+    <label>PIN 4 Digit</label>
+    <input id="pin" type="password" maxlength="4" inputmode="numeric">
+
+    <button class="primary" id="activate">
+      Aktifkan Kartu
+    </button>
+
+    <div id="activateMessage"></div>
+  </div>
+
+</div>
+
+<script>
+
+const SUPABASE_URL='https://bjoinxzfddwpjkijjbyr.supabase.co';
+
+const SUPABASE_KEY='sb_publishable_O47NBwd2a7Px7CE1SSU0Mw_I78zGoMj';
+
+const supabase=window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
+async function checkLogin(){
+
+  const {
+    data:{session}
+  } = await supabase.auth.getSession();
+
+  if(!session){
+    window.location.href='/admin/';
+    return false;
+  }
+
+  return true;
+}
+
+document.getElementById('logout').addEventListener('click',async()=>{
+
+  await supabase.auth.signOut();
+
+  window.location.href='/admin/';
+
+});
+
+document.getElementById('generate').addEventListener('click',async()=>{
+
+  const quantity=parseInt(
+    document.getElementById('quantity').value
+  );
+
+  const prefix=document.getElementById('prefix').value.trim();
+
+  const message=document.getElementById('generateMessage');
+
+  message.textContent='Memproses...';
+  message.className='';
+
+  const {data,error}=await supabase.rpc(
+    'generate_cards',
+    {
+      p_quantity:quantity,
+      p_prefix:prefix
+    }
+  );
+
+  if(error){
+
+    message.textContent=error.message;
+    message.className='error';
+    return;
+
+  }
+
+  message.textContent=
+    'Berhasil generate '+data+' kartu.';
+  message.className='success';
+
+});
+
+document.getElementById('activate').addEventListener('click',async()=>{
+
+  const cardCode=
+    document.getElementById('cardCode').value.trim();
+
+  const businessName=
+    document.getElementById('businessName').value.trim();
+
+  const placeId=
+    document.getElementById('placeId').value.trim();
+
+  const pin=
+    document.getElementById('pin').value.trim();
+
+  const message=
+    document.getElementById('activateMessage');
+
+  message.textContent='Memproses...';
+  message.className='';
+
+  const {data,error}=await supabase.rpc(
+    'activate_card',
+    {
+      p_card_code:cardCode,
+      p_business_name:businessName,
+      p_place_id:placeId,
+      p_pin:pin
+    }
+  );
+
+  if(error){
+
+    message.textContent=error.message;
+    message.className='error';
+    return;
+
+  }
+
+  message.textContent=
+    'Kartu '+data.card_code+
+    ' berhasil diaktifkan untuk '+
+    data.business_name;
+
+  message.className='success';
+
+});
+
+checkLogin();
+
+</script>
+
+</body>
+</html>
