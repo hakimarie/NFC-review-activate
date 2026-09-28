@@ -197,6 +197,22 @@
         // Primary format: /r/KT000001
         // Fallback format: ?card=KT000001
         function getCardCode() {
+            async function logCardScan(cardCode) {
+    try {
+        const source =
+            /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+                ? 'mobile'
+                : 'desktop';
+
+        await supabase.rpc('log_card_scan', {
+            p_card_code: cardCode,
+            p_source: source,
+            p_user_agent: navigator.userAgent
+        });
+    } catch (error) {
+        console.warn('Scan tracking gagal:', error);
+    }
+}
             const pathMatch = window.location.pathname.match(/\/r\/([^/]+)\/?$/i);
             if (pathMatch) {
                 return decodeURIComponent(pathMatch[1]).trim().toUpperCase();
@@ -213,10 +229,31 @@
 
         const cardCode = getCardCode();
 
-        function showError(message) {
-            errorText.textContent = message;
-            errorMessage.classList.add('show');
-        }
+async function logCardScan(cardCode) {
+    try {
+        const source =
+            /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+                ? 'mobile'
+                : 'desktop';
+
+        await supabase.rpc('log_card_scan', {
+            p_card_code: cardCode,
+            p_source: source,
+            p_user_agent: navigator.userAgent
+        });
+    } catch (error) {
+        console.warn('Scan tracking gagal:', error);
+    }
+}
+
+if (cardCode) {
+    logCardScan(cardCode);
+}
+
+function showError(message) {
+    errorText.textContent = message;
+    errorMessage.classList.add('show');
+}
 
         function setLoading(isLoading) {
             submitBtn.disabled = isLoading;
