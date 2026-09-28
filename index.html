@@ -215,10 +215,20 @@ function getCardCode() {
 
 async function logCardScan(cardCode) {
     try {
-        const source =
-            /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
-                ? 'mobile'
-                : 'desktop';
+        const params = new URLSearchParams(window.location.search);
+        const sourceParam = params.get('src');
+
+        let source = 'unknown';
+
+        if (sourceParam === 'qr') {
+            source = 'qr';
+        } else if (sourceParam === 'nfc') {
+            source = 'nfc';
+        } else if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+            source = 'mobile';
+        } else {
+            source = 'desktop';
+        }
 
         await supabase.rpc('log_card_scan', {
             p_card_code: cardCode,
