@@ -23,10 +23,25 @@ h1{margin:6px 0 5px;font-size:30px}.sub{color:#64748b;margin-bottom:25px}
 <body>
 <header><div class="logo">Ketemu<span>Terus</span></div><button class="logout" id="logout">Logout</button></header>
 <main class="container">
-  <div class="eyebrow">Client Dashboard</div>
-  <h1 id="clientName">Memuat...</h1>
-  <div class="sub" id="businessName">Memuat data bisnis...</div>
-  <div class="notice">Dashboard ini hanya menampilkan data bisnis dan kartu yang terhubung ke akun Anda.</div>
+  <div class="eyebrow">KetemuTerus • Client Dashboard</div>
+
+<div style="display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap">
+  <div>
+    <h1 id="clientName">Memuat...</h1>
+    <div class="sub" id="businessName">Memuat data bisnis...</div>
+  </div>
+
+  <div style="text-align:right">
+    <div style="font-size:12px;color:#64748b">Status Account</div>
+    <div style="margin-top:5px">
+      <span class="badge">ACTIVE</span>
+    </div>
+  </div>
+</div>
+
+<div class="notice">
+  Monitor aktivitas kartu dan sumber scan pelanggan dari satu dashboard.
+</div>
 
   <section class="stats">
     <div class="stat"><div class="label">Active Cards</div><div class="value" id="activeCards">-</div></div>
