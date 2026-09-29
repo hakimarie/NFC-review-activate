@@ -85,5 +85,60 @@ footer{text-align:center;color:#94a3b8;font-size:11px;margin-top:28px}
         <p id="stateText">Mohon tunggu sebentar.</p>
       </div>
     </div>
-</body>
+<script>
+const SUPABASE_URL='https://bjoinxzfddwpjkijjbyr.supabase.co';
+const SUPABASE_KEY='sb_publishable_O47NBwd2a7Px7CE1SSU0Mw_I78zGoMj';
+const supabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
+function getCardCode(){
+  const m=window.location.pathname.match(/\\/r\\/([^/]+)\\/?$/i);
+  if(m)return decodeURIComponent(m[1]).trim().toUpperCase();
+  const q=new URLSearchParams(window.location.search).get('card');
+  return q?q.trim().toUpperCase():null;
+}
+async function logCardScan(cardCode){
+  try{
+    const p=new URLSearchParams(window.location.search);
+    let source=p.get('src');
+    if(source!=='qr'&&source!=='nfc') source=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)?'mobile':'desktop';
+    await supabase.rpc('log_card_scan',{p_card_code:cardCode,p_source:source,p_user_agent:navigator.userAgent});
+  }catch(e){}
+}
+function showCardState(icon,title,text){
+  document.getElementById('landingPage').style.display='none';
+  const box=document.getElementById('cardState');
+  box.style.display='flex';
+  document.getElementById('stateIcon').textContent=icon;
+  document.getElementById('stateTitle').textContent=title;
+  document.getElementById('stateText').textContent=text;
+}
+async function resolveCard(){
+  const code=getCardCode();
+  if(!code)return;
+  showCardState('…','Memeriksa kartu...','Mohon tunggu sebentar.');
+  logCardScan(code);
+  try{
+    const {data,error}=await supabase.rpc('resolve_card',{p_card_code:code});
+    if(error)throw error;
+    const card=Array.isArray(data)?data[0]:data;
+    if(card&&card.status==='ACTIVE'&&card.review_url){
+      window.location.replace(card.review_url);
+      return;
+    }
+    if(card&&card.status==='AVAILABLE'){
+      showCardState('⏳','Kartu belum diaktifkan','Kartu ini belum terhubung ke bisnis. Silakan hubungi admin KetemuTerus.');
+      return;
+    }
+    if(!card){
+      showCardState('⚠️','Kartu tidak ditemukan','Pastikan QR atau NFC berasal dari kartu KetemuTerus yang valid.');
+      return;
+    }
+    showCardState('⚠️','Kartu tidak tersedia','Silakan hubungi admin KetemuTerus.');
+  }catch(e){
+    console.error(e);
+    showCardState('⚠️','Kartu belum dapat diperiksa','Silakan coba lagi beberapa saat.');
+  }
+}
+window.addEventListener('load',resolveCard);
+</script></body>
 </html>
