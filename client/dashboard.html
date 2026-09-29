@@ -50,69 +50,35 @@ h1{margin:6px 0 5px;font-size:30px}.sub{color:#64748b;margin-bottom:25px}
     <div class="stat"><div class="label">NFC Scans</div><div class="value" id="nfcScans">-</div></div>
   </section>
 
-  <section class="panel">
-  <h2>Performance Overview</h2>
-
-  <div class="stats" style="margin-bottom:0">
-    <div class="stat">
-      <div class="label">Active Cards</div>
-      <div class="value" id="activeCards">-</div>
-    </div>
-
-    <div class="stat">
-      <div class="label">Total Scans</div>
-      <div class="value" id="totalScans">-</div>
-    </div>
-
-    <div class="stat">
-      <div class="label">QR Scans</div>
-      <div class="value" id="qrScans">-</div>
-    </div>
-
-    <div class="stat">
-      <div class="label">NFC Scans</div>
-      <div class="value" id="nfcScans">-</div>
-    </div>
-
-    <div class="stat">
-      <div class="label">Scans Hari Ini</div>
-      <div class="value" id="today">-</div>
-    </div>
-
-    <div class="stat">
-      <div class="label">Scans 7 Hari</div>
-      <div class="value" id="sevenDays">-</div>
-    </div>
-  </div>
-</section><div class="label">Scans 7 Hari</div><div class="value" id="sevenDays">-</div></div>
-  </section>
-<section class="panel" id="insightPanel" style="background:#eff6ff;border-color:#bfdbfe">
-  <h2>Insight</h2>
-  <div id="insightText" style="color:#1e40af;line-height:1.6">
-    Menganalisis aktivitas...
-  </div>
-</section>
-  <section class="panel">
-  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
-    <h2 style="margin:0">Scan Trend</h2>
-
-    <select id="trendPeriod" style="width:auto;min-width:120px">
-      <option value="7">7 Hari</option>
-      <option value="30">30 Hari</option>
-    </select>
+  <section class="stats">
+  <div class="stat">
+    <div class="label">Active Cards</div>
+    <div class="value" id="activeCards">-</div>
   </div>
 
-  <div id="trendMessage" class="loading">Memuat trend...</div>
-
-  <div
-    style="display:grid;grid-template-columns:repeat(7,1fr);gap:10px;align-items:end;min-height:190px;padding:15px 5px"
-    id="trendChart">
+  <div class="stat">
+    <div class="label">Total Scans</div>
+    <div class="value" id="totalScans">-</div>
   </div>
 
-  <div style="display:flex;gap:18px;margin-top:14px;font-size:12px;color:#64748b">
-    <span>■ Total Scan</span>
-    <span>QR: <strong id="trendQr">0</strong></span>
-    <span>NFC: <strong id="trendNfc">0</strong></span>
+  <div class="stat">
+    <div class="label">QR Scans</div>
+    <div class="value" id="qrScans">-</div>
+  </div>
+
+  <div class="stat">
+    <div class="label">NFC Scans</div>
+    <div class="value" id="nfcScans">-</div>
+  </div>
+
+  <div class="stat">
+    <div class="label">Scans Hari Ini</div>
+    <div class="value" id="today">-</div>
+  </div>
+
+  <div class="stat">
+    <div class="label">Scans 7 Hari</div>
+    <div class="value" id="sevenDays">-</div>
   </div>
 </section>
 
@@ -243,6 +209,8 @@ async function loadAnalytics(){
     p_business_name:null,p_card_code:null,p_source:source,
     p_start_date:startDate?startDate.toISOString():null,p_end_date:null
   });
+  console.log('CLIENT ANALYTICS DATA:', data);
+console.log('CLIENT ANALYTICS ERROR:', error);
   const rows=document.getElementById('rows'), msg=document.getElementById('message');
   if(error){msg.className='error';msg.textContent='Gagal memuat analytics: '+error.message;rows.innerHTML='';return;}
   clientRows=data||[]; msg.textContent='';
