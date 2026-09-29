@@ -296,115 +296,7 @@ th{
 </div>
 
 </div>
-
-<div class="panel">
-/* ANALYTICS */
-
-async function loadAnalytics(){
-
-  const {data,error}=await supabase.rpc('card_scan_stats');
-
-  const analytics=document.getElementById('analytics');
-
-  if(error){
-
-    analytics.innerHTML=`
-      <tr>
-        <td colspan="9" class="empty">
-          Gagal memuat analytics: ${escapeHtml(error.message)}
-        </td>
-      </tr>
-    `;
-
-    return;
-  }
-
-  const rows=data || [];
-
-  const totalScans=rows.reduce(
-    (sum,row)=>sum+Number(row.total_scans||0),
-    0
-  );
-
-  const qrScans=rows.reduce(
-    (sum,row)=>sum+Number(row.qr_scans||0),
-    0
-  );
-
-  const nfcScans=rows.reduce(
-    (sum,row)=>sum+Number(row.nfc_scans||0),
-    0
-  );
-
-  const scans7Days=rows.reduce(
-    (sum,row)=>sum+Number(row.scans_7_days||0),
-    0
-  );
-
-  document.getElementById('totalScans').textContent=totalScans;
-  document.getElementById('qrScans').textContent=qrScans;
-  document.getElementById('nfcScans').textContent=nfcScans;
-  document.getElementById('scans7Days').textContent=scans7Days;
-
-  if(rows.length===0){
-
-    analytics.innerHTML=`
-      <tr>
-        <td colspan="9" class="empty">
-          Belum ada data scan.
-        </td>
-      </tr>
-    `;
-
-    return;
-  }
-
-  analytics.innerHTML=rows.map(row=>{
-
-    const statusClass =
-      row.card_status==='ACTIVE'
-        ? 'active'
-        : row.card_status==='SUSPENDED'
-        ? 'suspended'
-        : 'available';
-
-    const lastScan=row.last_scan
-      ? new Date(row.last_scan).toLocaleString('id-ID')
-      : '-';
-
-    return `
-      <tr>
-
-        <td>
-          <strong>${escapeHtml(row.card_code)}</strong>
-        </td>
-
-        <td>
-          ${escapeHtml(row.business_name || '-')}
-        </td>
-
-        <td>
-          <span class="badge ${statusClass}">
-            ${escapeHtml(row.card_status)}
-          </span>
-        </td>
-
-        <td>${Number(row.qr_scans||0)}</td>
-
-        <td>${Number(row.nfc_scans||0)}</td>
-
-        <td>
-          <strong>${Number(row.total_scans||0)}</strong>
-        </td>
-
-        <td>${Number(row.scans_today||0)}</td>
-
-        <td>${Number(row.scans_7_days||0)}</td>
-
-        <td>${lastScan}</td>
-
-      </tr>
-    `;
+;
 
   }).join('');
 }
@@ -526,6 +418,101 @@ const supabase=window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_KEY
 );
+
+/* ANALYTICS */
+
+async function loadAnalytics(){
+
+  const {data,error}=await supabase.rpc('card_scan_stats');
+
+  const analytics=document.getElementById('analytics');
+
+  if(error){
+
+    analytics.innerHTML=`
+      <tr>
+        <td colspan="9" class="empty">
+          Gagal memuat analytics: ${escapeHtml(error.message)}
+        </td>
+      </tr>
+    `;
+
+    return;
+  }
+
+  const rows=data || [];
+
+  const totalScans=rows.reduce(
+    (sum,row)=>sum+Number(row.total_scans||0),
+    0
+  );
+
+  const qrScans=rows.reduce(
+    (sum,row)=>sum+Number(row.qr_scans||0),
+    0
+  );
+
+  const nfcScans=rows.reduce(
+    (sum,row)=>sum+Number(row.nfc_scans||0),
+    0
+  );
+
+  const scans7Days=rows.reduce(
+    (sum,row)=>sum+Number(row.scans_7_days||0),
+    0
+  );
+
+  document.getElementById('totalScans').textContent=totalScans;
+  document.getElementById('qrScans').textContent=qrScans;
+  document.getElementById('nfcScans').textContent=nfcScans;
+  document.getElementById('scans7Days').textContent=scans7Days;
+
+  if(rows.length===0){
+
+    analytics.innerHTML=`
+      <tr>
+        <td colspan="9" class="empty">
+          Belum ada data scan.
+        </td>
+      </tr>
+    `;
+
+    return;
+  }
+
+  analytics.innerHTML=rows.map(row=>{
+
+    const statusClass =
+      row.card_status==='ACTIVE'
+        ? 'active'
+        : row.card_status==='SUSPENDED'
+        ? 'suspended'
+        : 'available';
+
+    const lastScan=row.last_scan
+      ? new Date(row.last_scan).toLocaleString('id-ID')
+      : '-';
+
+    return `
+      <tr>
+        <td><strong>${escapeHtml(row.card_code)}</strong></td>
+        <td>${escapeHtml(row.business_name || '-')}</td>
+        <td>
+          <span class="badge ${statusClass}">
+            ${escapeHtml(row.card_status)}
+          </span>
+        </td>
+        <td>${Number(row.qr_scans||0)}</td>
+        <td>${Number(row.nfc_scans||0)}</td>
+        <td><strong>${Number(row.total_scans||0)}</strong></td>
+        <td>${Number(row.scans_today||0)}</td>
+        <td>${Number(row.scans_7_days||0)}</td>
+        <td>${lastScan}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
 
 
 /* AUTH */
