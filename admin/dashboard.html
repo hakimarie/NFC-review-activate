@@ -225,13 +225,13 @@ th{
   </div>
 
   <div class="stat">
-    <div class="stat-label">Available</div>
-    <div class="stat-value" id="available">-</div>
+    <div class="stat-label">Active</div>
+    <div class="stat-value" id="active">-</div>
   </div>
 
   <div class="stat">
-    <div class="stat-label">Active</div>
-    <div class="stat-value" id="active">-</div>
+    <div class="stat-label">Available</div>
+    <div class="stat-value" id="available">-</div>
   </div>
 
   <div class="stat">
@@ -239,11 +239,175 @@ th{
     <div class="stat-value" id="suspended">-</div>
   </div>
 
+  <div class="stat">
+    <div class="stat-label">Total Scans</div>
+    <div class="stat-value" id="totalScans">-</div>
+  </div>
+
+  <div class="stat">
+    <div class="stat-label">QR Scans</div>
+    <div class="stat-value" id="qrScans">-</div>
+  </div>
+
+  <div class="stat">
+    <div class="stat-label">NFC Scans</div>
+    <div class="stat-value" id="nfcScans">-</div>
+  </div>
+
+  <div class="stat">
+    <div class="stat-label">Scans 7 Hari</div>
+    <div class="stat-value" id="scans7Days">-</div>
+  </div>
+
+</div><div class="panel">
+
+<h2>Analytics Scan</h2>
+
+<div class="table-wrap">
+
+<table>
+
+<thead>
+<tr>
+  <th>Card</th>
+  <th>Business</th>
+  <th>Status</th>
+  <th>QR</th>
+  <th>NFC</th>
+  <th>Total</th>
+  <th>Hari Ini</th>
+  <th>7 Hari</th>
+  <th>Last Scan</th>
+</tr>
+</thead>
+
+<tbody id="analytics">
+
+<tr>
+  <td colspan="9" class="empty">
+    Memuat analytics...
+  </td>
+</tr>
+
+</tbody>
+
+</table>
+
 </div>
 
+</div>
 
 <div class="panel">
+/* ANALYTICS */
 
+async function loadAnalytics(){
+
+  const {data,error}=await supabase.rpc('card_scan_stats');
+
+  const analytics=document.getElementById('analytics');
+
+  if(error){
+
+    analytics.innerHTML=`
+      <tr>
+        <td colspan="9" class="empty">
+          Gagal memuat analytics: ${escapeHtml(error.message)}
+        </td>
+      </tr>
+    `;
+
+    return;
+  }
+
+  const rows=data || [];
+
+  const totalScans=rows.reduce(
+    (sum,row)=>sum+Number(row.total_scans||0),
+    0
+  );
+
+  const qrScans=rows.reduce(
+    (sum,row)=>sum+Number(row.qr_scans||0),
+    0
+  );
+
+  const nfcScans=rows.reduce(
+    (sum,row)=>sum+Number(row.nfc_scans||0),
+    0
+  );
+
+  const scans7Days=rows.reduce(
+    (sum,row)=>sum+Number(row.scans_7_days||0),
+    0
+  );
+
+  document.getElementById('totalScans').textContent=totalScans;
+  document.getElementById('qrScans').textContent=qrScans;
+  document.getElementById('nfcScans').textContent=nfcScans;
+  document.getElementById('scans7Days').textContent=scans7Days;
+
+  if(rows.length===0){
+
+    analytics.innerHTML=`
+      <tr>
+        <td colspan="9" class="empty">
+          Belum ada data scan.
+        </td>
+      </tr>
+    `;
+
+    return;
+  }
+
+  analytics.innerHTML=rows.map(row=>{
+
+    const statusClass =
+      row.card_status==='ACTIVE'
+        ? 'active'
+        : row.card_status==='SUSPENDED'
+        ? 'suspended'
+        : 'available';
+
+    const lastScan=row.last_scan
+      ? new Date(row.last_scan).toLocaleString('id-ID')
+      : '-';
+
+    return `
+      <tr>
+
+        <td>
+          <strong>${escapeHtml(row.card_code)}</strong>
+        </td>
+
+        <td>
+          ${escapeHtml(row.business_name || '-')}
+        </td>
+
+        <td>
+          <span class="badge ${statusClass}">
+            ${escapeHtml(row.card_status)}
+          </span>
+        </td>
+
+        <td>${Number(row.qr_scans||0)}</td>
+
+        <td>${Number(row.nfc_scans||0)}</td>
+
+        <td>
+          <strong>${Number(row.total_scans||0)}</strong>
+        </td>
+
+        <td>${Number(row.scans_today||0)}</td>
+
+        <td>${Number(row.scans_7_days||0)}</td>
+
+        <td>${lastScan}</td>
+
+      </tr>
+    `;
+
+  }).join('');
+}
 <h2>Generate Kartu</h2>
 
 <div class="form-grid">
@@ -666,9 +830,10 @@ function escapeHtml(value){
 
   if(loggedIn){
 
-    await loadInventory();
+  await loadInventory();
+  await loadAnalytics();
 
-  }
+}
 
 })();
 
