@@ -1396,6 +1396,9 @@ async function openCardDetail(row){
     document.getElementById('detailReviewUrl').textContent='Gagal memuat detail: '+error.message;
   }else if(data && data.length){
     const detail=data[0];
+
+    console.log('CARD DETAIL:', detail);
+    console.log('GOOGLE REVIEW URL:', detail.review_url);
     document.getElementById('detailTotal').textContent=Number(detail.total_scans||0);
     document.getElementById('detailQr').textContent=Number(detail.qr_scans||0);
     document.getElementById('detailNfc').textContent=Number(detail.nfc_scans||0);
@@ -1407,12 +1410,26 @@ async function openCardDetail(row){
         ? new Date(detail.last_scan).toLocaleString('id-ID')
         : 'Belum ada scan';
 
-    const url=detail.review_url||'';
-    document.getElementById('detailReviewUrl').textContent=url||'URL Google Review belum tersedia.';
+    const url = (detail.review_url || '').trim();
+
+    console.log('FINAL GOOGLE REVIEW URL:', url);
+
     if(url){
-      review.href=url;
-      review.style.display='inline-block';
+      document.getElementById('detailReviewUrl').textContent = url;
+      review.href = url;
+      review.target = '_blank';
+      review.rel = 'noopener noreferrer';
+      review.style.display = 'inline-block';
+    }else{
+      document.getElementById('detailReviewUrl').textContent =
+        'URL Google Review belum tersedia.';
+      review.style.display = 'none';
     }
+  }else{
+    document.getElementById('detailReviewUrl').textContent =
+      'Detail kartu tidak ditemukan.';
+    review.style.display = 'none';
+    console.log('CARD DETAIL EMPTY:', row.card_code, data);
   }
 
   const historyResult=await supabase.rpc('client_card_scan_history',{
