@@ -39,7 +39,12 @@ h1{margin:6px 0 5px;font-size:30px}.sub{color:#64748b;margin-bottom:25px}
     <div class="stat"><div class="label">Scans Hari Ini</div><div class="value" id="today">-</div></div>
     <div class="stat"><div class="label">Scans 7 Hari</div><div class="value" id="sevenDays">-</div></div>
   </section>
-
+<section class="panel" id="insightPanel" style="background:#eff6ff;border-color:#bfdbfe">
+  <h2>Insight</h2>
+  <div id="insightText" style="color:#1e40af;line-height:1.6">
+    Menganalisis aktivitas...
+  </div>
+</section>
   <section class="panel">
     <h2>Scan Trend — 7 Hari</h2>
     <div id="trendMessage" class="loading">Memuat trend...</div>
@@ -90,6 +95,28 @@ async function loadTrend(){
   const nfc=rows.reduce((s,r)=>s+Number(r.nfc_scans||0),0);
   document.getElementById('trendQr').textContent=qr;
   document.getElementById('trendNfc').textContent=nfc;
+  const total=rows.reduce((s,r)=>s+Number(r.total_scans||0),0);
+const peak=rows.reduce(
+  (best,r)=>Number(r.total_scans||0)>Number(best.total_scans||0)?r:best,
+  rows[0]||null
+);
+
+const insight=document.getElementById('insightText');
+
+if(!total){
+  insight.textContent='Belum ada aktivitas scan dalam 7 hari terakhir.';
+}else{
+  const peakLabel=peak
+    ? new Date(peak.scan_date+'T00:00:00')
+        .toLocaleDateString('id-ID',{day:'2-digit',month:'short'})
+    : '-';
+
+  insight.textContent=
+    total+' scan tercatat dalam 7 hari terakhir. '+
+    'QR menghasilkan '+qr+' scan dan NFC menghasilkan '+nfc+
+    ' scan. Hari paling aktif: '+peakLabel+
+    ' dengan '+Number(peak.total_scans||0)+' scan.';
+}
   msg.textContent=rows.reduce((s,r)=>s+Number(r.total_scans||0),0)+' total scan dalam 7 hari';
   chart.innerHTML=rows.map(r=>{
     const total=Number(r.total_scans||0);
