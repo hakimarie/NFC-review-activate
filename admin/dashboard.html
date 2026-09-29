@@ -127,6 +127,26 @@ input{
   font-size:14px;
 }
 
+.filters{
+  display:grid;
+  grid-template-columns:2fr 1fr 1fr 1fr;
+  gap:12px;
+  margin-bottom:18px;
+}
+
+select{
+  width:100%;
+  padding:11px;
+  border:1px solid #d1d5db;
+  border-radius:8px;
+  font-size:14px;
+  background:#fff;
+}
+
+@media(max-width:800px){
+  .filters{grid-template-columns:1fr 1fr;}
+}
+
 .success{
   color:#198754;
 }
@@ -263,6 +283,38 @@ th{
 
 <h2>Analytics Scan</h2>
 
+<div class="filters">
+  <div>
+    <label>Business</label>
+    <select id="filterBusiness">
+      <option value="">Semua Business</option>
+    </select>
+  </div>
+  <div>
+    <label>Card</label>
+    <select id="filterCard">
+      <option value="">Semua Card</option>
+    </select>
+  </div>
+  <div>
+    <label>Source</label>
+    <select id="filterSource">
+      <option value="">Semua</option>
+      <option value="qr">QR</option>
+      <option value="nfc">NFC</option>
+    </select>
+  </div>
+  <div>
+    <label>Periode</label>
+    <select id="filterPeriod">
+      <option value="all">Semua waktu</option>
+      <option value="today">Hari ini</option>
+      <option value="7">7 hari</option>
+      <option value="30">30 hari</option>
+    </select>
+  </div>
+</div>
+
 <div class="table-wrap">
 
 <table>
@@ -296,10 +348,10 @@ th{
 </div>
 
 </div>
-;
 
-  }).join('');
-}
+</div>
+
+<div class="panel">
 <h2>Generate Kartu</h2>
 
 <div class="form-grid">
@@ -421,46 +473,60 @@ const supabase=window.supabase.createClient(
 
 /* ANALYTICS */
 
-async function loadAnalytics(){
+let analyticsCards=[];
 
-  const {data,error}=await supabase.rpc('card_scan_stats');
+function populateAnalyticsFilters(){
+  const business=document.getElementById('filterBusiness');
+  const card=document.getElementById('filterCard');
+
+  const businesses=[...new Set(analyticsCards.map(r=>r.business_name).filter(Boolean))].sort();
+  const cards=analyticsCards.map(r=>r.card_code).filter(Boolean).sort();
+
+  business.innerHTML='<option value="">Semua Business</option>'+
+    businesses.map(v=>`<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('');
+
+  card.innerHTML='<option value="">Semua Card</option>'+
+    cards.map(v=>`<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('');
+}
+
+async function loadAnalytics(){
+  const business=document.getElementById('filterBusiness').value;
+  const card=document.getElementById('filterCard').value;
+  const source=document.getElementById('filterSource').value;
+  const period=document.getElementById('filterPeriod').value;
+
+  let startDate=null;
+  if(period==='today'){
+    startDate=new Date();
+    startDate.setHours(0,0,0,0);
+  }else if(period==='7' || period==='30'){
+    startDate=new Date();
+    startDate.setDate(startDate.getDate()-Number(period));
+  }
+
+  const {data,error}=await supabase.rpc('card_scan_stats_filtered',{
+    p_business_name:business || null,
+    p_card_code:card || null,
+    p_source:source || null,
+    p_start_date:startDate ? startDate.toISOString() : null,
+    p_end_date:null
+  });
 
   const analytics=document.getElementById('analytics');
 
   if(error){
-
-    analytics.innerHTML=`
-      <tr>
-        <td colspan="9" class="empty">
-          Gagal memuat analytics: ${escapeHtml(error.message)}
-        </td>
-      </tr>
-    `;
-
+    analytics.innerHTML=`<tr><td colspan="9" class="empty">Gagal memuat analytics: ${escapeHtml(error.message)}</td></tr>`;
     return;
   }
 
   const rows=data || [];
+  analyticsCards=rows;
+  populateAnalyticsFilters();
 
-  const totalScans=rows.reduce(
-    (sum,row)=>sum+Number(row.total_scans||0),
-    0
-  );
-
-  const qrScans=rows.reduce(
-    (sum,row)=>sum+Number(row.qr_scans||0),
-    0
-  );
-
-  const nfcScans=rows.reduce(
-    (sum,row)=>sum+Number(row.nfc_scans||0),
-    0
-  );
-
-  const scans7Days=rows.reduce(
-    (sum,row)=>sum+Number(row.scans_7_days||0),
-    0
-  );
+  const totalScans=rows.reduce((sum,row)=>sum+Number(row.total_scans||0),0);
+  const qrScans=rows.reduce((sum,row)=>sum+Number(row.qr_scans||0),0);
+  const nfcScans=rows.reduce((sum,row)=>sum+Number(row.nfc_scans||0),0);
+  const scans7Days=rows.reduce((sum,row)=>sum+Number(row.scans_7_days||0),0);
 
   document.getElementById('totalScans').textContent=totalScans;
   document.getElementById('qrScans').textContent=qrScans;
@@ -468,51 +534,30 @@ async function loadAnalytics(){
   document.getElementById('scans7Days').textContent=scans7Days;
 
   if(rows.length===0){
-
-    analytics.innerHTML=`
-      <tr>
-        <td colspan="9" class="empty">
-          Belum ada data scan.
-        </td>
-      </tr>
-    `;
-
+    analytics.innerHTML='<tr><td colspan="9" class="empty">Tidak ada data sesuai filter.</td></tr>';
     return;
   }
 
   analytics.innerHTML=rows.map(row=>{
-
-    const statusClass =
-      row.card_status==='ACTIVE'
-        ? 'active'
-        : row.card_status==='SUSPENDED'
-        ? 'suspended'
-        : 'available';
-
-    const lastScan=row.last_scan
-      ? new Date(row.last_scan).toLocaleString('id-ID')
-      : '-';
-
-    return `
-      <tr>
-        <td><strong>${escapeHtml(row.card_code)}</strong></td>
-        <td>${escapeHtml(row.business_name || '-')}</td>
-        <td>
-          <span class="badge ${statusClass}">
-            ${escapeHtml(row.card_status)}
-          </span>
-        </td>
-        <td>${Number(row.qr_scans||0)}</td>
-        <td>${Number(row.nfc_scans||0)}</td>
-        <td><strong>${Number(row.total_scans||0)}</strong></td>
-        <td>${Number(row.scans_today||0)}</td>
-        <td>${Number(row.scans_7_days||0)}</td>
-        <td>${lastScan}</td>
-      </tr>
-    `;
+    const statusClass=row.card_status==='ACTIVE'?'active':row.card_status==='SUSPENDED'?'suspended':'available';
+    const lastScan=row.last_scan ? new Date(row.last_scan).toLocaleString('id-ID') : '-';
+    return `<tr>
+      <td><strong>${escapeHtml(row.card_code)}</strong></td>
+      <td>${escapeHtml(row.business_name || '-')}</td>
+      <td><span class="badge ${statusClass}">${escapeHtml(row.card_status)}</span></td>
+      <td>${Number(row.qr_scans||0)}</td>
+      <td>${Number(row.nfc_scans||0)}</td>
+      <td><strong>${Number(row.total_scans||0)}</strong></td>
+      <td>${Number(row.scans_today||0)}</td>
+      <td>${Number(row.scans_7_days||0)}</td>
+      <td>${lastScan}</td>
+    </tr>`;
   }).join('');
 }
 
+['filterBusiness','filterCard','filterSource','filterPeriod'].forEach(id=>{
+  document.getElementById(id).addEventListener('change',loadAnalytics);
+});
 
 
 /* AUTH */
