@@ -176,6 +176,94 @@ th{
   color:#64748b
 }
 
+.card-link{
+  color:#2563eb;
+  cursor:pointer;
+  text-decoration:none;
+  font-weight:700
+}
+.card-link:hover{text-decoration:underline}
+
+.detail-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(15,23,42,.45);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  z-index:1000
+}
+
+.detail-modal{
+  width:min(760px,100%);
+  max-height:90vh;
+  overflow:auto;
+  background:#fff;
+  border-radius:16px;
+  border:1px solid #e2e8f0;
+  box-shadow:0 20px 60px rgba(15,23,42,.2)
+}
+
+.detail-head{
+  padding:20px 22px;
+  border-bottom:1px solid #e2e8f0;
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:15px
+}
+
+.detail-close{
+  border:0;
+  background:#f1f5f9;
+  color:#0f172a;
+  width:34px;
+  height:34px;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:18px
+}
+
+.detail-body{padding:22px}
+
+.detail-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:12px;
+  margin-bottom:18px
+}
+
+.detail-card{
+  padding:15px;
+  border:1px solid #e2e8f0;
+  border-radius:12px;
+  background:#f8fafc
+}
+
+.detail-value{
+  font-size:24px;
+  font-weight:700;
+  margin-top:5px
+}
+
+.detail-section{
+  border-top:1px solid #e2e8f0;
+  padding-top:18px;
+  margin-top:18px
+}
+
+.review-link{
+  display:inline-block;
+  margin-top:8px;
+  padding:10px 13px;
+  border-radius:8px;
+  background:#2563eb;
+  color:#fff;
+  text-decoration:none;
+  font-size:13px
+}
+
 @media(max-width:800px){
   .stats{
     grid-template-columns:1fr 1fr
@@ -199,6 +287,10 @@ th{
 
   .panel > div[style*="repeat(4,1fr)"]{
     grid-template-columns:1fr 1fr !important;
+  }
+
+  .detail-grid{
+    grid-template-columns:1fr 1fr;
   }
 }
 </style>
@@ -466,6 +558,61 @@ th{
 
 </main>
 
+<div class="detail-overlay" id="detailOverlay">
+  <div class="detail-modal" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
+    <div class="detail-head">
+      <div>
+        <div class="eyebrow">Card Detail</div>
+        <h2 id="detailTitle" style="margin:5px 0 0;font-size:24px">-</h2>
+        <div id="detailBusiness" style="color:#64748b;margin-top:4px">-</div>
+      </div>
+      <button class="detail-close" id="detailClose" aria-label="Tutup">×</button>
+    </div>
+    <div class="detail-body">
+      <div class="detail-grid">
+        <div class="detail-card">
+          <div class="label">Total Scan</div>
+          <div class="detail-value" id="detailTotal">-</div>
+        </div>
+        <div class="detail-card">
+          <div class="label">QR Scan</div>
+          <div class="detail-value" id="detailQr">-</div>
+        </div>
+        <div class="detail-card">
+          <div class="label">NFC Scan</div>
+          <div class="detail-value" id="detailNfc">-</div>
+        </div>
+        <div class="detail-card">
+          <div class="label">Hari Ini</div>
+          <div class="detail-value" id="detailToday">-</div>
+        </div>
+        <div class="detail-card">
+          <div class="label">7 Hari</div>
+          <div class="detail-value" id="detailSeven">-</div>
+        </div>
+        <div class="detail-card">
+          <div class="label">Status</div>
+          <div class="detail-value" id="detailStatus" style="font-size:16px">-</div>
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <div class="label">Scan Terakhir</div>
+        <div id="detailLast" style="margin-top:6px;font-weight:600">-</div>
+      </div>
+
+      <div class="detail-section">
+        <div class="label">Google Review</div>
+        <div style="color:#64748b;font-size:13px;margin-top:5px">
+          Link tujuan kartu saat pelanggan melakukan scan.
+        </div>
+        <a id="detailReview" class="review-link" href="#" target="_blank" rel="noopener">
+          Buka Google Review
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
 
@@ -1066,9 +1213,11 @@ async function loadAnalytics(){
         '<tr>' +
 
         '<td>' +
-        '<strong>' +
+        '<a href="#" class="card-link" data-card="' +
         esc(r.card_code) +
-        '</strong>' +
+        '">' +
+        esc(r.card_code) +
+        '</a>' +
         '</td>' +
 
         '<td>' +
@@ -1133,6 +1282,41 @@ async function loadAnalytics(){
 
 }
 
+
+
+function openCardDetail(row){
+  document.getElementById('detailTitle').textContent = row.card_code || '-';
+  document.getElementById('detailBusiness').textContent = row.business_name || '-';
+  document.getElementById('detailTotal').textContent = Number(row.total_scans || 0);
+  document.getElementById('detailQr').textContent = Number(row.qr_scans || 0);
+  document.getElementById('detailNfc').textContent = Number(row.nfc_scans || 0);
+  document.getElementById('detailToday').textContent = Number(row.scans_today || 0);
+  document.getElementById('detailSeven').textContent = Number(row.scans_7_days || 0);
+  document.getElementById('detailStatus').textContent = row.card_status || '-';
+  document.getElementById('detailLast').textContent =
+    row.last_scan
+      ? new Date(row.last_scan).toLocaleString('id-ID')
+      : 'Belum ada scan';
+
+  const review = document.getElementById('detailReview');
+  review.style.display='none';
+
+  document.getElementById('detailOverlay').style.display='flex';
+}
+
+function closeCardDetail(){
+  document.getElementById('detailOverlay').style.display='none';
+}
+
+document.getElementById('detailClose').addEventListener('click',closeCardDetail);
+
+document.getElementById('detailOverlay').addEventListener('click',e=>{
+  if(e.target.id==='detailOverlay') closeCardDetail();
+});
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape') closeCardDetail();
+});
 
 /* FILTERS */
 
