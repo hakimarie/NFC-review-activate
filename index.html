@@ -70,10 +70,10 @@ footer{text-align:center;color:#94a3b8;font-size:11px;margin-top:28px}
 
       <div class="cta">
         <div><strong>Siap bikin bisnis lebih mudah ditemukan?</strong><span>Hubungi KetemuTerus untuk kartu NFC Google Review.</span></div>
-        <a href="https://wa.me/" aria-label="Hubungi KetemuTerus">Hubungi Kami →</a>
+        <a href="http://wa.me/6281584229797" aria-label="Hubungi KetemuTerus">Hubungi Kami →</a>
       </div>
 
-      <div class="admin-link"><a href="/admin/">Login Admin →</a></div>
+      
       <footer>Lebih Mudah Ditemukan. Lebih Banyak Pelanggan.</footer>
     </main>
 
@@ -91,7 +91,7 @@ const SUPABASE_KEY='sb_publishable_O47NBwd2a7Px7CE1SSU0Mw_I78zGoMj';
 const supabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
 function getCardCode(){
-  const m=window.location.pathname.match(/\\/r\\/([^/]+)\\/?$/i);
+  const m=window.location.pathname.match(/\/r\/([^/]+)\/?$/i);
   if(m)return decodeURIComponent(m[1]).trim().toUpperCase();
   const q=new URLSearchParams(window.location.search).get('card');
   return q?q.trim().toUpperCase():null;
