@@ -192,6 +192,10 @@ th{
   .container{
     margin-top:22px
   }
+
+  .panel > div[style*="repeat(4,1fr)"]{
+    grid-template-columns:1fr 1fr !important;
+  }
 }
 </style>
 </head>
@@ -228,6 +232,36 @@ th{
   <div class="notice">
     Monitor aktivitas kartu dan sumber scan pelanggan dari satu dashboard.
   </div>
+
+
+  <!-- BUSINESS SUMMARY -->
+  <section class="panel">
+    <h2>Business Summary</h2>
+
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:15px">
+
+      <div style="padding:16px;border-radius:12px;background:#f8fafc;border:1px solid #e2e8f0">
+        <div class="label">Kartu Aktif</div>
+        <div class="value" id="summaryActive">-</div>
+      </div>
+
+      <div style="padding:16px;border-radius:12px;background:#f8fafc;border:1px solid #e2e8f0">
+        <div class="label">Total Scan</div>
+        <div class="value" id="summaryTotal">-</div>
+      </div>
+
+      <div style="padding:16px;border-radius:12px;background:#f8fafc;border:1px solid #e2e8f0">
+        <div class="label">Scan Terakhir</div>
+        <div class="value" id="summaryLast" style="font-size:18px">-</div>
+      </div>
+
+      <div style="padding:16px;border-radius:12px;background:#f8fafc;border:1px solid #e2e8f0">
+        <div class="label">Kartu Belum Scan</div>
+        <div class="value" id="summaryNever">-</div>
+      </div>
+
+    </div>
+  </section>
 
 
   <!-- PERFORMANCE OVERVIEW -->
@@ -906,6 +940,48 @@ async function loadAnalytics(){
       )
     ].join(' • ') ||
     'Tidak ada bisnis terhubung';
+
+
+  const summaryLastScan =
+    clientRows
+      .filter(r => r.last_scan)
+      .sort(
+        (a,b) =>
+          new Date(b.last_scan) -
+          new Date(a.last_scan)
+      )[0];
+
+  const neverScanned =
+    clientRows.filter(
+      r => Number(r.total_scans || 0) === 0
+    ).length;
+
+  document.getElementById(
+    'summaryActive'
+  ).textContent = active;
+
+  document.getElementById(
+    'summaryTotal'
+  ).textContent = total;
+
+  document.getElementById(
+    'summaryNever'
+  ).textContent = neverScanned;
+
+  document.getElementById(
+    'summaryLast'
+  ).textContent =
+    summaryLastScan
+      ? new Date(
+          summaryLastScan.last_scan
+        ).toLocaleDateString(
+          'id-ID',
+          {
+            day:'2-digit',
+            month:'short'
+          }
+        )
+      : '-';
 
 
   if(!clientRows.length){
