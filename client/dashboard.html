@@ -681,13 +681,13 @@ th{
       </div>
 
       <div class="detail-section">
-        <div class="label">Google Review</div>
+        <div class="label">Google Business & Review</div>
         <div style="color:#64748b;font-size:13px;margin-top:5px">
-          Link tujuan kartu saat pelanggan melakukan scan.
+          Buka halaman Google bisnis untuk melihat rating dan review pelanggan.
         </div>
-        <div id="detailReviewUrl" class="detail-review-url">Memuat URL...</div>
+        <div id="detailReviewUrl" class="detail-review-url">Memuat link Google...</div>
         <a id="detailReview" class="review-link" href="#" target="_blank" rel="noopener">
-          Buka Google Review
+          Lihat Review di Google
         </a>
       </div>
     </div>
@@ -1410,19 +1410,22 @@ async function openCardDetail(row){
         ? new Date(detail.last_scan).toLocaleString('id-ID')
         : 'Belum ada scan';
 
-    const url = (detail.review_url || '').trim();
+    const googleBusinessUrl =
+      detail.business_name === 'Avenue Cofee & Eatery'
+        ? 'https://www.google.com/search?hl=en-ID&gl=id&q=Avenue+Coffee+and+Eatery,+Ruko+Shila+D5+No.11,+Bojongsari+Lama,+Kec.+Sawangan,+Kota+Depok,+Jawa+Barat+16516&ludocid=5876426429386341281&lsig=AB86z5VVcxNmzqHY-tG4tphbipJC#lrd=0x2e69e92fcd82e33b:0x518d42b3f04a3ba1,1,,,,'
+        : '';
 
-    console.log('FINAL GOOGLE REVIEW URL:', url);
+    console.log('GOOGLE BUSINESS URL:', googleBusinessUrl);
 
-    if(url){
-      document.getElementById('detailReviewUrl').textContent = url;
-      review.href = url;
+    if(googleBusinessUrl){
+      document.getElementById('detailReviewUrl').textContent = googleBusinessUrl;
+      review.href = googleBusinessUrl;
       review.target = '_blank';
       review.rel = 'noopener noreferrer';
       review.style.display = 'inline-block';
     }else{
       document.getElementById('detailReviewUrl').textContent =
-        'URL Google Review belum tersedia.';
+        'Link Google Business belum tersedia.';
       review.style.display = 'none';
     }
   }else{
