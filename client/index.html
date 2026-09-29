@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KetemuTerus Client Login</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#eff6ff;color:#0f172a}
+.card{max-width:420px;margin:90px auto;background:#fff;padding:32px;border-radius:16px;box-shadow:0 8px 30px rgba(15,23,42,.08)}
+.logo{font-size:25px;font-weight:700;margin-bottom:8px}.logo span{color:#2563eb}
+.subtitle{color:#64748b;margin-bottom:28px}label{display:block;font-weight:600;font-size:14px;margin:16px 0 7px}
+input{width:100%;padding:13px;border:1px solid #cbd5e1;border-radius:9px;font-size:15px}
+button{width:100%;margin-top:22px;padding:13px;border:0;border-radius:9px;background:#2563eb;color:#fff;font-size:15px;font-weight:600;cursor:pointer}
+.error{color:#dc2626;margin-top:14px;font-size:14px}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">Ketemu<span>Terus</span></div>
+  <div class="subtitle">Client Dashboard</div>
+  <label>Email</label><input id="email" type="email" autocomplete="email">
+  <label>Password</label><input id="password" type="password" autocomplete="current-password">
+  <button id="login">Masuk</button>
+  <div id="error" class="error"></div>
+</div>
+<script>
+const SUPABASE_URL='https://bjoinxzfddwpjkijjbyr.supabase.co';
+const SUPABASE_KEY='sb_publishable_O47NBwd2a7Px7CE1SSU0Mw_I78zGoMj';
+const supabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+document.getElementById('login').addEventListener('click',async()=>{
+  const email=document.getElementById('email').value.trim();
+  const password=document.getElementById('password').value;
+  const errorBox=document.getElementById('error'); errorBox.textContent='';
+  const {error}=await supabase.auth.signInWithPassword({email,password});
+  if(error){errorBox.textContent=error.message;return;}
+  window.location.href='/client/dashboard.html';
+});
+</script>
+</body>
+</html>
