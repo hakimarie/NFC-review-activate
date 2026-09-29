@@ -1401,8 +1401,8 @@ async function openCardDetail(row){
         : 'Belum ada scan';
 
     const googleBusinessUrl = detail.place_id
-      ? 'https://www.google.com/maps/search/?api=1&query=Google&query_place_id=' +
-        encodeURIComponent(detail.place_id)
+      ? 'https://www.google.com/search?q=avenue+coffee+and+eatery&oq=avnue+cof&sourceid=chrome&ie=UTF-8#lrd=' +
+        '0x2e69e92fcd82e33b:0x518d42b3f04a3ba1,1,,,,'
       : '';
 
     console.log('GOOGLE BUSINESS URL:', googleBusinessUrl);
