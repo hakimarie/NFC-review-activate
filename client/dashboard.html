@@ -1400,10 +1400,10 @@ async function openCardDetail(row){
         ? activityLabel(detail.last_scan)
         : 'Belum ada scan';
 
-    const googleBusinessUrl =
-      detail.business_name === 'Avenue Cofee & Eatery'
-        ? 'https://www.google.com/search?hl=en-ID&gl=id&q=Avenue+Coffee+and+Eatery,+Ruko+Shila+D5+No.11,+Bojongsari+Lama,+Kec.+Sawangan,+Kota+Depok,+Jawa+Barat+16516&ludocid=5876426429386341281&lsig=AB86z5VVcxNmzqHY-tG4tphbipJC#lrd=0x2e69e92fcd82e33b:0x518d42b3f04a3ba1,1,,,,'
-        : '';
+    const googleBusinessUrl = detail.place_id
+      ? 'https://www.google.com/maps/search/?api=1&query=Google&query_place_id=' +
+        encodeURIComponent(detail.place_id)
+      : '';
 
     console.log('GOOGLE BUSINESS URL:', googleBusinessUrl);
 
