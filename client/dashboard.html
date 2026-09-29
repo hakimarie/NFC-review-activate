@@ -45,20 +45,29 @@ h1{margin:6px 0 5px;font-size:30px}.sub{color:#64748b;margin-bottom:25px}
     Menganalisis aktivitas...
   </div>
 </section>
+  <section class="panel">
   <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
-  <h2 style="margin:0">Scan Trend</h2>
+    <h2 style="margin:0">Scan Trend</h2>
 
-  <select id="trendPeriod" style="width:auto;min-width:120px">
-    <option value="7">7 Hari</option>
-    <option value="30">30 Hari</option>
-  </select>
-</div>
-    <div id="trendMessage" class="loading">Memuat trend...</div>
-    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:10px;align-items:end;min-height:190px;padding:15px 5px" id="trendChart"></div>
-    <div style="display:flex;gap:18px;margin-top:14px;font-size:12px;color:#64748b">
-      <span>■ Total Scan</span><span>QR: <strong id="trendQr">0</strong></span><span>NFC: <strong id="trendNfc">0</strong></span>
-    </div>
-  </section>
+    <select id="trendPeriod" style="width:auto;min-width:120px">
+      <option value="7">7 Hari</option>
+      <option value="30">30 Hari</option>
+    </select>
+  </div>
+
+  <div id="trendMessage" class="loading">Memuat trend...</div>
+
+  <div
+    style="display:grid;grid-template-columns:repeat(7,1fr);gap:10px;align-items:end;min-height:190px;padding:15px 5px"
+    id="trendChart">
+  </div>
+
+  <div style="display:flex;gap:18px;margin-top:14px;font-size:12px;color:#64748b">
+    <span>■ Total Scan</span>
+    <span>QR: <strong id="trendQr">0</strong></span>
+    <span>NFC: <strong id="trendNfc">0</strong></span>
+  </div>
+</section>
 
   <section class="panel">
     <h2>Aktivitas Kartu</h2>
