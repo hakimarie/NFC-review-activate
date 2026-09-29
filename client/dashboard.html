@@ -293,6 +293,68 @@ th{
     grid-template-columns:1fr 1fr;
   }
 }
+
+.scan-history{
+  max-height:240px;
+  overflow:auto;
+  border:1px solid #e2e8f0;
+  border-radius:10px;
+  margin-top:10px
+}
+.scan-history-row{
+  display:grid;
+  grid-template-columns:1.3fr .7fr 2fr;
+  gap:10px;
+  padding:10px 12px;
+  border-bottom:1px solid #e2e8f0;
+  font-size:12px
+}
+.scan-history-row:last-child{border-bottom:0}
+.scan-source{
+  font-weight:700;
+  color:#1d4ed8
+}
+.detail-chart{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:8px;
+  align-items:end;
+  min-height:150px;
+  padding:12px 4px
+}
+.detail-bar-wrap{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:end;
+  height:140px;
+  gap:5px
+}
+.detail-bar{
+  width:100%;
+  max-width:32px;
+  background:#2563eb;
+  border-radius:6px 6px 2px 2px
+}
+.detail-review-url{
+  margin-top:10px;
+  padding:10px;
+  background:#f8fafc;
+  border:1px solid #e2e8f0;
+  border-radius:8px;
+  font-size:12px;
+  line-height:1.5;
+  word-break:break-all;
+  color:#475569
+}
+@media(max-width:600px){
+  .scan-history-row{
+    grid-template-columns:1fr 1fr;
+  }
+  .scan-history-row .ua{
+    grid-column:1/-1;
+  }
+}
 </style>
 </head>
 
@@ -602,10 +664,28 @@ th{
       </div>
 
       <div class="detail-section">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+          <div class="label">Grafik Scan 7 Hari</div>
+          <div id="detailTrendSummary" style="font-size:12px;color:#64748b">-</div>
+        </div>
+        <div id="detailChart" class="detail-chart">
+          <div class="loading">Memuat grafik...</div>
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <div class="label">History Scan</div>
+        <div id="detailHistory" class="scan-history">
+          <div class="loading" style="padding:14px">Memuat history...</div>
+        </div>
+      </div>
+
+      <div class="detail-section">
         <div class="label">Google Review</div>
         <div style="color:#64748b;font-size:13px;margin-top:5px">
           Link tujuan kartu saat pelanggan melakukan scan.
         </div>
+        <div id="detailReviewUrl" class="detail-review-url">Memuat URL...</div>
         <a id="detailReview" class="review-link" href="#" target="_blank" rel="noopener">
           Buka Google Review
         </a>
@@ -1284,7 +1364,7 @@ async function loadAnalytics(){
 
 
 
-function openCardDetail(row){
+async function openCardDetail(row){
   document.getElementById('detailTitle').textContent = row.card_code || '-';
   document.getElementById('detailBusiness').textContent = row.business_name || '-';
   document.getElementById('detailTotal').textContent = Number(row.total_scans || 0);
@@ -1298,10 +1378,120 @@ function openCardDetail(row){
       ? new Date(row.last_scan).toLocaleString('id-ID')
       : 'Belum ada scan';
 
+  document.getElementById('detailTrendSummary').textContent='Memuat...';
+  document.getElementById('detailChart').innerHTML='<div class="loading">Memuat grafik...</div>';
+  document.getElementById('detailHistory').innerHTML='<div class="loading" style="padding:14px">Memuat history...</div>';
+  document.getElementById('detailReviewUrl').textContent='Memuat URL...';
+
   const review = document.getElementById('detailReview');
   review.style.display='none';
 
   document.getElementById('detailOverlay').style.display='flex';
+
+  const {data,error}=await supabase.rpc('client_card_detail',{
+    p_card_code:row.card_code
+  });
+
+  if(error){
+    document.getElementById('detailReviewUrl').textContent='Gagal memuat detail: '+error.message;
+  }else if(data && data.length){
+    const detail=data[0];
+    document.getElementById('detailTotal').textContent=Number(detail.total_scans||0);
+    document.getElementById('detailQr').textContent=Number(detail.qr_scans||0);
+    document.getElementById('detailNfc').textContent=Number(detail.nfc_scans||0);
+    document.getElementById('detailToday').textContent=Number(detail.scans_today||0);
+    document.getElementById('detailSeven').textContent=Number(detail.scans_7_days||0);
+    document.getElementById('detailStatus').textContent=detail.card_status||'-';
+    document.getElementById('detailLast').textContent=
+      detail.last_scan
+        ? new Date(detail.last_scan).toLocaleString('id-ID')
+        : 'Belum ada scan';
+
+    const url=detail.review_url||'';
+    document.getElementById('detailReviewUrl').textContent=url||'URL Google Review belum tersedia.';
+    if(url){
+      review.href=url;
+      review.style.display='inline-block';
+    }
+  }
+
+  const historyResult=await supabase.rpc('client_card_scan_history',{
+    p_card_code:row.card_code,
+    p_days:30
+  });
+
+  if(historyResult.error){
+    document.getElementById('detailHistory').innerHTML=
+      '<div class="error" style="padding:14px">Gagal memuat history: '+esc(historyResult.error.message)+'</div>';
+    document.getElementById('detailChart').innerHTML='';
+    return;
+  }
+
+  const history=historyResult.data||[];
+  renderCardDetailChart(history);
+  renderCardDetailHistory(history);
+}
+
+function renderCardDetailChart(history){
+  const chart=document.getElementById('detailChart');
+  const days=7;
+  const now=new Date();
+  const rows=[];
+
+  for(let i=days-1;i>=0;i--){
+    const d=new Date(now);
+    d.setHours(0,0,0,0);
+    d.setDate(d.getDate()-i);
+    const key=d.toISOString().slice(0,10);
+    const dayRows=history.filter(r=>{
+      const x=new Date(r.scanned_at);
+      return x.toISOString().slice(0,10)===key;
+    });
+    rows.push({
+      key,
+      total:dayRows.length,
+      qr:dayRows.filter(r=>r.source==='qr').length,
+      nfc:dayRows.filter(r=>r.source==='nfc').length
+    });
+  }
+
+  const max=Math.max(1,...rows.map(r=>r.total));
+  const total=rows.reduce((s,r)=>s+r.total,0);
+  const qr=rows.reduce((s,r)=>s+r.qr,0);
+  const nfc=rows.reduce((s,r)=>s+r.nfc,0);
+
+  document.getElementById('detailTrendSummary').textContent=
+    total+' scan • QR '+qr+' • NFC '+nfc;
+
+  chart.innerHTML=rows.map(r=>{
+    const h=r.total?Math.max(10,Math.round((r.total/max)*105)):3;
+    const label=new Date(r.key+'T00:00:00').toLocaleDateString('id-ID',{day:'2-digit',month:'short'});
+    return '<div class="detail-bar-wrap">'+
+      '<strong style="font-size:11px">'+r.total+'</strong>'+
+      '<div class="detail-bar" title="'+r.total+' scan | QR '+r.qr+' | NFC '+r.nfc+'" style="height:'+h+'px"></div>'+
+      '<span style="font-size:10px;color:#64748b">'+label+'</span>'+
+      '</div>';
+  }).join('');
+}
+
+function renderCardDetailHistory(history){
+  const box=document.getElementById('detailHistory');
+
+  if(!history.length){
+    box.innerHTML='<div class="empty">Belum ada history scan dalam 30 hari terakhir.</div>';
+    return;
+  }
+
+  box.innerHTML=history.map(r=>{
+    const source=(r.source||'unknown').toUpperCase();
+    const when=new Date(r.scanned_at).toLocaleString('id-ID');
+    const ua=r.user_agent||'-';
+    return '<div class="scan-history-row">'+
+      '<div>'+esc(when)+'</div>'+
+      '<div class="scan-source">'+esc(source)+'</div>'+
+      '<div class="ua" style="color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+esc(ua)+'">'+esc(ua)+'</div>'+
+      '</div>';
+  }).join('');
 }
 
 function closeCardDetail(){
@@ -1316,6 +1506,15 @@ document.getElementById('detailOverlay').addEventListener('click',e=>{
 
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape') closeCardDetail();
+});
+
+document.getElementById('rows').addEventListener('click',e=>{
+  const link=e.target.closest('.card-link');
+  if(!link) return;
+  e.preventDefault();
+  const code=link.dataset.card;
+  const row=clientRows.find(r=>r.card_code===code);
+  if(row) openCardDetail(row);
 });
 
 /* FILTERS */
