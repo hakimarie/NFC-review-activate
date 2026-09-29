@@ -45,8 +45,14 @@ h1{margin:6px 0 5px;font-size:30px}.sub{color:#64748b;margin-bottom:25px}
     Menganalisis aktivitas...
   </div>
 </section>
-  <section class="panel">
-    <h2>Scan Trend — 7 Hari</h2>
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+  <h2 style="margin:0">Scan Trend</h2>
+
+  <select id="trendPeriod" style="width:auto;min-width:120px">
+    <option value="7">7 Hari</option>
+    <option value="30">30 Hari</option>
+  </select>
+</div>
     <div id="trendMessage" class="loading">Memuat trend...</div>
     <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:10px;align-items:end;min-height:190px;padding:15px 5px" id="trendChart"></div>
     <div style="display:flex;gap:18px;margin-top:14px;font-size:12px;color:#64748b">
@@ -87,7 +93,7 @@ async function getClient(){
 async function loadTrend(){
   const msg=document.getElementById('trendMessage');
   const chart=document.getElementById('trendChart');
-  const {data,error}=await supabase.rpc('client_scan_trend',{p_days:7});
+  const {data,error}=await supabase.rpc('client_scan_trend',{p_days:Number(document.getElementById('trendPeriod').value)});
   if(error){msg.className='error';msg.textContent='Gagal memuat trend: '+error.message;return;}
   const rows=data||[];
   const max=Math.max(1,...rows.map(r=>Number(r.total_scans||0)));
@@ -104,7 +110,13 @@ const peak=rows.reduce(
 const insight=document.getElementById('insightText');
 
 if(!total){
-  insight.textContent='Belum ada aktivitas scan dalam 7 hari terakhir.';
+  const periodLabel=document.getElementById('trendPeriod').value+' hari';
+
+insight.textContent=
+  total+' scan tercatat dalam '+periodLabel+'. '+
+  'QR menghasilkan '+qr+' scan dan NFC menghasilkan '+nfc+
+  ' scan. Hari paling aktif: '+peakLabel+
+  ' dengan '+Number(peak.total_scans||0)+' scan.';
 }else{
   const peakLabel=peak
     ? new Date(peak.scan_date+'T00:00:00')
@@ -158,7 +170,7 @@ async function loadAnalytics(){
   rows.innerHTML=clientRows.map(r=>'<tr><td><strong>'+esc(r.card_code)+'</strong></td><td>'+esc(r.business_name||'-')+'</td><td><span class="badge">'+esc(r.card_status)+'</span></td><td>'+Number(r.qr_scans||0)+'</td><td>'+Number(r.nfc_scans||0)+'</td><td><strong>'+Number(r.total_scans||0)+'</strong></td><td>'+Number(r.scans_today||0)+'</td><td>'+Number(r.scans_7_days||0)+'</td><td>'+(r.last_scan?new Date(r.last_scan).toLocaleString('id-ID'):'-')+'</td></tr>').join('');
 }
 
-document.getElementById('source').addEventListener('change',loadAnalytics);
+document.getElementById('source').addEventListenerdocument.getElementById('trendPeriod').addEventListener('change',loadTrend);('change',loadAnalytics);
 document.getElementById('period').addEventListener('change',loadAnalytics);
 document.getElementById('logout').addEventListener('click',async()=>{await supabase.auth.signOut();window.location.href='/client/';});
 
