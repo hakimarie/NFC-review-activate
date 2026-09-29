@@ -281,9 +281,8 @@ th{
     margin-top:22px
   }
 
-  #actionCenter > div{
-    min-height:72px;
-  }
+  #actionCenter{grid-template-columns:1fr 1fr !important}
+  #actionCenter > div{min-height:82px}
 
   .panel > div[style*="repeat(4,1fr)"]{
     grid-template-columns:1fr 1fr !important;
@@ -348,6 +347,7 @@ th{
   color:#475569
 }
 @media(max-width:600px){
+  #actionCenter{grid-template-columns:1fr !important}
   .scan-history-row{
     grid-template-columns:1fr 1fr;
   }
@@ -378,7 +378,7 @@ th{
     </div>
 
     <div style="text-align:right">
-      <div style="font-size:12px;color:#64748b">Business Status</div>
+      <div style="font-size:12px;color:#64748b">Business Connected</div>
 
       <div style="margin-top:5px">
         <span class="badge">● ACTIVE</span>
@@ -388,7 +388,7 @@ th{
   </div>
 
   <div class="notice">
-    Monitor aktivitas kartu dan sumber scan pelanggan dari satu dashboard.
+    Pantau aktivitas pelanggan, performa kartu, dan engagement QR + NFC dari satu dashboard.
   </div>
 
 
@@ -399,7 +399,7 @@ th{
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:15px">
 
       <div style="padding:16px;border-radius:12px;background:#f8fafc;border:1px solid #e2e8f0">
-        <div class="label">Kartu Aktif</div>
+        <div class="label">Active Cards</div>
         <div class="value" id="summaryActive">-</div>
       </div>
 
@@ -425,7 +425,7 @@ th{
   <!-- ACTION CENTER -->
   <section class="panel">
     <h2>Perhatian &amp; Insight</h2>
-    <div id="actionCenter" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+    <div id="actionCenter" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
       <div class="loading">Menganalisis aktivitas kartu...</div>
     </div>
   </section>
@@ -459,7 +459,7 @@ th{
       </div>
 
       <div class="stat">
-        <div class="label">Engagement Today</div>
+        <div class="label">Today</div>
         <div class="value" id="today">-</div>
       </div>
 
@@ -603,8 +603,8 @@ th{
             <th>QR</th>
             <th>NFC</th>
             <th>Total</th>
-            <th>Hari Ini</th>
-            <th>7 Hari</th>
+            <th>Today</th>
+            <th>7 Days</th>
             <th>Last Activity</th>
           </tr>
 
@@ -628,7 +628,7 @@ th{
   <div class="detail-modal" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
     <div class="detail-head">
       <div>
-        <div class="eyebrow">KetemuTerus • Card Performance</div>
+        <div class="eyebrow">CARD PERFORMANCE</div>
         <h2 id="detailTitle" style="margin:5px 0 0;font-size:24px">-</h2>
         <div id="detailBusiness" style="color:#64748b;margin-top:4px">-</div>
       </div>
@@ -726,6 +726,22 @@ function esc(v){
 
 }
 
+function activityLabel(value){
+  if(!value) return '-';
+  const d=new Date(value);
+  if(Number.isNaN(d.getTime())) return '-';
+  const now=new Date();
+  const diff=Math.max(0,now.getTime()-d.getTime());
+  const mins=Math.floor(diff/60000);
+  if(mins<1) return 'Just now';
+  if(mins<60) return mins+' min ago';
+  const hours=Math.floor(mins/60);
+  if(hours<24) return hours+' hr ago';
+  const days=Math.floor(hours/24);
+  if(days===1) return 'Yesterday';
+  if(days<7) return days+' days ago';
+  return d.toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'});
+}
 
 async function getClient(){
 
@@ -1191,21 +1207,13 @@ async function loadAnalytics(){
   ).textContent = neverScanned;
 
   document.getElementById('clientName').textContent = 'Client Dashboard';
-  document.getElementById('businessName').textContent = 'Business Overview';
+  document.getElementById('businessName').textContent = [...new Set(clientRows.map(r => r.business_name).filter(Boolean))].join(' • ') || 'Business Overview';
 
   document.getElementById(
     'summaryLast'
   ).textContent =
     summaryLastScan
-      ? new Date(
-          summaryLastScan.last_scan
-        ).toLocaleDateString(
-          'id-ID',
-          {
-            day:'2-digit',
-            month:'short'
-          }
-        )
+      ? activityLabel(summaryLastScan.last_scan)
       : '-';
 
 
@@ -1243,7 +1251,7 @@ async function loadAnalytics(){
     actions.push(
       '<div style="padding:14px;border-radius:12px;background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af">' +
       '<strong>Scan terakhir</strong><div style="margin-top:5px">' +
-      new Date(latestScan.last_scan).toLocaleString('id-ID') + '</div></div>'
+      activityLabel(latestScan.last_scan) + '</div></div>'
     );
   }
 
@@ -1332,11 +1340,7 @@ async function loadAnalytics(){
         '<td>' +
         (
           r.last_scan
-            ? new Date(
-                r.last_scan
-              ).toLocaleString(
-                'id-ID'
-              )
+            ? activityLabel(r.last_scan)
             : '-'
         ) +
         '</td>' +
@@ -1360,7 +1364,7 @@ async function openCardDetail(row){
   document.getElementById('detailStatus').textContent = row.card_status || '-';
   document.getElementById('detailLast').textContent =
     row.last_scan
-      ? new Date(row.last_scan).toLocaleString('id-ID')
+      ? activityLabel(row.last_scan)
       : 'Belum ada scan';
 
   document.getElementById('detailTrendSummary').textContent='Memuat...';
@@ -1392,7 +1396,7 @@ async function openCardDetail(row){
     document.getElementById('detailStatus').textContent=detail.card_status||'-';
     document.getElementById('detailLast').textContent=
       detail.last_scan
-        ? new Date(detail.last_scan).toLocaleString('id-ID')
+        ? activityLabel(detail.last_scan)
         : 'Belum ada scan';
 
     const googleBusinessUrl =
