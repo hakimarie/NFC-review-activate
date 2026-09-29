@@ -40,6 +40,12 @@ h1{margin:6px 0 5px;font-size:30px}.sub{color:#64748b;margin-bottom:25px}
     <div class="stat"><div class="label">Scans 7 Hari</div><div class="value" id="sevenDays">-</div></div>
   </section>
 
+  <section class="panel" style="background:#f8fafc;border-style:dashed">
+    <h2>Trend RPC Test</h2>
+    <div id="trendTest" class="loading">Menjalankan test...</div>
+    <pre id="trendOutput" style="white-space:pre-wrap;overflow:auto;font-size:12px;background:#fff;padding:12px;border-radius:8px;border:1px solid #e2e8f0"></pre>
+  </section>
+
   <section class="panel">
     <h2>Aktivitas Kartu</h2>
     <div class="filters">
@@ -110,7 +116,20 @@ document.getElementById('logout').addEventListener('click',async()=>{await supab
   const {data}=await supabase.auth.getSession();
   if(!data.session){window.location.href='/client/';return;}
   const client=await getClient();
-  if(client) await loadAnalytics();
+  if(client){
+    await loadAnalytics();
+    const {data:trend,error:trendError}=await supabase.rpc('client_scan_trend',{p_days:7});
+    const trendTest=document.getElementById('trendTest');
+    const trendOutput=document.getElementById('trendOutput');
+    if(trendError){
+      trendTest.className='error';
+      trendTest.textContent='RPC gagal';
+      trendOutput.textContent=trendError.message;
+    }else{
+      trendTest.textContent='RPC berhasil — '+(trend||[]).length+' baris diterima.';
+      trendOutput.textContent=JSON.stringify(trend||[],null,2);
+    }
+  }
 })();
 </script>
 </body>
