@@ -685,7 +685,7 @@ th{
         <div style="color:#64748b;font-size:13px;margin-top:5px">
           Buka halaman Google bisnis untuk melihat rating dan review pelanggan.
         </div>
-        <div id="detailReviewUrl" class="detail-review-url">Memuat link Google...</div>
+        <div id="detailReviewUrl" class="detail-review-url" style="display:none"></div>
         <a id="detailReview" class="review-link" href="#" target="_blank" rel="noopener">
           Lihat Review di Google
         </a>
@@ -1418,14 +1418,14 @@ async function openCardDetail(row){
     console.log('GOOGLE BUSINESS URL:', googleBusinessUrl);
 
     if(googleBusinessUrl){
-      document.getElementById('detailReviewUrl').textContent = googleBusinessUrl;
+      document.getElementById('detailReviewUrl').textContent = '';
       review.href = googleBusinessUrl;
       review.target = '_blank';
       review.rel = 'noopener noreferrer';
       review.style.display = 'inline-block';
     }else{
       document.getElementById('detailReviewUrl').textContent =
-        'Link Google Business belum tersedia.';
+        '';
       review.style.display = 'none';
     }
   }else{
