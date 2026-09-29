@@ -744,14 +744,7 @@ async function getClient(){
     window.location.href='/client/';
     return null;
 
-  }
-
-  document.getElementById(
-    'clientName'
-  ).textContent =
-    data.client_name;
-
-  return data;
+  }return data;
 
 }
 
@@ -1171,21 +1164,6 @@ async function loadAnalytics(){
   ).textContent = seven;
 
 
-  document.getElementById(
-    'businessName'
-  ).textContent =
-    [
-      ...new Set(
-        clientRows
-          .map(
-            r => r.business_name
-          )
-          .filter(Boolean)
-      )
-    ].join(' • ') ||
-    'Tidak ada bisnis terhubung';
-
-
   const summaryLastScan =
     clientRows
       .filter(r => r.last_scan)
@@ -1211,6 +1189,9 @@ async function loadAnalytics(){
   document.getElementById(
     'summaryNever'
   ).textContent = neverScanned;
+
+  document.getElementById('clientName').textContent = 'Client Dashboard';
+  document.getElementById('businessName').textContent = 'Business Overview';
 
   document.getElementById(
     'summaryLast'
