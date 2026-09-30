@@ -99,12 +99,11 @@ function getCardCode(){
 async function logCardScan(cardCode){
   try{
     const p=new URLSearchParams(window.location.search);
-    let source=p.get('src');
-    if(source!=='qr'&&source!=='nfc') source=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)?'mobile':'desktop';
+    const source=p.get('src');
+    if(source!=='qr'&&source!=='nfc') return;
     await supabase.rpc('log_card_scan',{p_card_code:cardCode,p_source:source,p_user_agent:navigator.userAgent});
   }catch(e){}
-}
-function showCardState(icon,title,text){
+}\nfunction showCardState(icon,title,text){
   document.getElementById('landingPage').style.display='none';
   const box=document.getElementById('cardState');
   box.style.display='flex';
@@ -122,6 +121,11 @@ async function resolveCard(){
     if(error)throw error;
     const card=Array.isArray(data)?data[0]:data;
     if(card&&card.status==='ACTIVE'&&card.review_url){
+      const qcMode = localStorage.getItem('kt_qc_mode') === '1';
+      if(qcMode){
+        showCardState('✓','QC: '+code,'Kartu aktif dan QR terhubung ke kartu yang benar.');
+        return;
+      }
       window.location.replace(card.review_url);
       return;
     }
