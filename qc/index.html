@@ -36,7 +36,6 @@ button.off{background:#e2e8f0;color:#0f172a}
 </div>
 </main>
 <script>
-localStorage.setItem('kt_qc_mode','1');
 const video=document.getElementById('video'),result=document.getElementById('result'),codeEl=document.getElementById('code');
 let stream=null,running=false,detector=null;
 function extract(value){
@@ -82,7 +81,7 @@ function stop(){
 }
 document.getElementById('start').onclick=start;
 document.getElementById('stop').onclick=stop;
-document.getElementById('off').onclick=()=>{stop();localStorage.removeItem('kt_qc_mode');location.href='/';};
+document.getElementById('off').onclick=()=>{stop();location.href='/';};
 </script>
 </body>
 </html>
