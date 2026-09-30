@@ -1,27 +1,88 @@
 <!DOCTYPE html>
 <html lang="id">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>KetemuTerus — QC Kartu</title>
 <style>
 *{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial;background:#f8fafc;color:#0f172a}
-main{max-width:460px;margin:auto;padding:42px 20px}.brand{font-size:22px;font-weight:800;margin-bottom:32px}.blue{color:#2563eb}
-.box{background:#fff;border:1px solid #e2e8f0;border-radius:20px;padding:26px;box-shadow:0 12px 40px rgba(15,23,42,.07)}
-h1{font-size:27px;margin:0 0 10px}.sub{font-size:14px;line-height:1.6;color:#64748b}
-button{width:100%;border:0;border-radius:12px;padding:14px;margin-top:16px;background:#2563eb;color:#fff;font-weight:700;font-size:14px}
-button.off{background:#e2e8f0;color:#0f172a}.status{margin-top:18px;padding:12px;border-radius:10px;background:#eff6ff;color:#2563eb;font-size:13px;font-weight:700;text-align:center}
-.note{margin-top:18px;color:#94a3b8;font-size:12px;line-height:1.5}
-</style></head>
-<body><main>
+main{max-width:460px;margin:auto;padding:30px 18px}.brand{font-size:22px;font-weight:800;margin-bottom:24px}.blue{color:#2563eb}
+.box{background:#fff;border:1px solid #e2e8f0;border-radius:20px;padding:20px;box-shadow:0 12px 40px rgba(15,23,42,.07)}
+h1{font-size:25px;margin:0 0 8px}.sub{font-size:14px;line-height:1.55;color:#64748b;margin-bottom:18px}
+video{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:14px;background:#0f172a;display:none}
+button{width:100%;border:0;border-radius:12px;padding:14px;margin-top:14px;background:#2563eb;color:#fff;font-weight:700;font-size:14px}
+button.off{background:#e2e8f0;color:#0f172a}
+.result{display:none;margin-top:18px;padding:20px;border-radius:14px;background:#eff6ff;border:1px solid #dbeafe;text-align:center}
+.label{font-size:11px;color:#64748b;font-weight:700;letter-spacing:.08em}.code{font-size:32px;font-weight:800;color:#2563eb;margin-top:5px}
+.ok{font-size:13px;color:#16a34a;font-weight:700;margin-top:6px}.note{margin-top:16px;color:#94a3b8;font-size:12px;line-height:1.5}
+</style>
+</head>
+<body>
+<main>
 <div class="brand">Ketemu<span class="blue">Terus</span> <small style="font-size:11px;color:#94a3b8">QC</small></div>
 <div class="box">
 <h1>QC Kartu Produksi</h1>
-<p class="sub">Aktifkan mode QC, lalu scan QR kartu. Sistem akan menampilkan Card ID tanpa mengarahkan ke Google Review.</p>
-<div class="status">● QC MODE SIAP</div>
-<button id="on">Aktifkan QC Mode</button>
-<button class="off" id="off">Matikan QC Mode</button>
-<p class="note">Setelah QC selesai, matikan mode QC agar QR kembali bekerja normal untuk pelanggan.</p>
-</div></main>
+<p class="sub">Arahkan kamera ke QR. Sistem akan membaca URL dan menampilkan Card ID saja.</p>
+<video id="video" playsinline></video>
+<button id="start">Scan QR Kartu</button>
+<button id="stop" class="off" style="display:none">Stop Scan</button>
+<div id="result" class="result">
+<div class="label">CARD ID</div>
+<div id="code" class="code">—</div>
+<div class="ok">✓ QR terbaca</div>
+</div>
+<button id="off" class="off">Matikan QC Mode</button>
+<div class="note">QC tidak mencatat scan sebagai analytics pelanggan.</div>
+</div>
+</main>
 <script>
-document.getElementById('on').onclick=()=>{localStorage.setItem('kt_qc_mode','1');location.href='/r/KT000001?src=qr'};
-document.getElementById('off').onclick=()=>{localStorage.removeItem('kt_qc_mode');alert('QC Mode dimatikan.');};
-</script></body></html>
+localStorage.setItem('kt_qc_mode','1');
+const video=document.getElementById('video'),result=document.getElementById('result'),codeEl=document.getElementById('code');
+let stream=null,running=false,detector=null;
+function extract(value){
+  try{
+    const u=new URL(value);
+    const m=u.pathname.match(/\/r\/([^/]+)\/?$/i);
+    return m?decodeURIComponent(m[1]).trim().toUpperCase():null;
+  }catch(e){return null}
+}
+function show(value){
+  const code=extract(value);
+  if(!code)return;
+  codeEl.textContent=code;
+  result.style.display='block';
+  stop();
+}
+async function start(){
+  try{
+    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});
+    video.srcObject=stream; video.style.display='block'; await video.play(); running=true;
+    document.getElementById('start').style.display='none'; document.getElementById('stop').style.display='block';
+    if('BarcodeDetector' in window){
+      detector=new BarcodeDetector({formats:['qr_code']});
+      scanNative();
+    }else{
+      alert('Browser ini belum mendukung scanner QR langsung. Gunakan Chrome/Safari versi terbaru.');
+    }
+  }catch(e){alert('Kamera tidak dapat dibuka. Izinkan akses kamera untuk halaman ini.');}
+}
+async function scanNative(){
+  if(!running)return;
+  try{
+    const codes=await detector.detect(video);
+    if(codes.length&&codes[0].rawValue)show(codes[0].rawValue);
+  }catch(e){}
+  if(running)requestAnimationFrame(scanNative);
+}
+function stop(){
+  running=false;
+  if(stream)stream.getTracks().forEach(t=>t.stop());
+  stream=null;video.style.display='none';
+  document.getElementById('start').style.display='block';document.getElementById('stop').style.display='none';
+}
+document.getElementById('start').onclick=start;
+document.getElementById('stop').onclick=stop;
+document.getElementById('off').onclick=()=>{stop();localStorage.removeItem('kt_qc_mode');location.href='/';};
+</script>
+</body>
+</html>
