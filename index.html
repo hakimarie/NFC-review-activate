@@ -115,7 +115,6 @@ async function resolveCard(){
   const code=getCardCode();
   if(!code)return;
   showCardState('…','Memeriksa kartu...','Mohon tunggu sebentar.');
-  logCardScan(code);
   try{
     const {data,error}=await supabase.rpc('resolve_card',{p_card_code:code});
     if(error)throw error;
@@ -126,6 +125,7 @@ async function resolveCard(){
         showCardState('✓','QC: '+code,'Kartu aktif dan QR terhubung ke kartu yang benar.');
         return;
       }
+      logCardScan(code);
       window.location.replace(card.review_url);
       return;
     }
