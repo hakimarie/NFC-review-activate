@@ -103,7 +103,8 @@ async function logCardScan(cardCode){
     if(source!=='qr'&&source!=='nfc') return;
     await supabase.rpc('log_card_scan',{p_card_code:cardCode,p_source:source,p_user_agent:navigator.userAgent});
   }catch(e){}
-}\nfunction showCardState(icon,title,text){
+}
+function showCardState(icon,title,text){
   document.getElementById('landingPage').style.display='none';
   const box=document.getElementById('cardState');
   box.style.display='flex';
