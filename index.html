@@ -120,11 +120,6 @@ async function resolveCard(){
     if(error)throw error;
     const card=Array.isArray(data)?data[0]:data;
     if(card&&card.status==='ACTIVE'&&card.review_url){
-      const qcMode = localStorage.getItem('kt_qc_mode') === '1';
-      if(qcMode){
-        showCardState('✓','QC: '+code,'Kartu aktif dan QR terhubung ke kartu yang benar.');
-        return;
-      }
       logCardScan(code);
       window.location.replace(card.review_url);
       return;
