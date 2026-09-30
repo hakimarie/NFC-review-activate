@@ -135,7 +135,7 @@ async function resolveCard(){
     showCardState('⚠️','Kartu tidak tersedia','Silakan hubungi admin KetemuTerus.');
   }catch(e){
     console.error(e);
-    showCardState('⚠️','Kartu belum dapat diperiksa','Silakan coba lagi beberapa saat.');
+    showCardState('⚠️','Kartu belum dapat diperiksa',e?.message||'Silakan coba lagi beberapa saat.');
   }
 }
 window.addEventListener('load',resolveCard);
