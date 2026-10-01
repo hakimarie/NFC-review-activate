@@ -4,15 +4,57 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>KetemuTerus Security Test</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0"></script>
 <style>
-body{font-family:Arial,sans-serif;background:#f8fafc;color:#0f172a;margin:0;padding:32px}
-main{max-width:720px;margin:auto;background:#fff;padding:24px;border:1px solid #e2e8f0;border-radius:16px}
+body{font-family:Arial,sans-serif;background:#f8fafc;color:#0f172a;margin:0;padding:24px}
+main{max-width:760px;margin:auto;background:#fff;padding:24px;border:1px solid #e2e8f0;border-radius:16px}
 h1{margin-top:0}.muted{color:#64748b}
+button{background:#2563eb;color:#fff;border:0;border-radius:9px;padding:11px 16px;font-weight:700;cursor:pointer}
+button:disabled{opacity:.5}.item{padding:14px;border:1px solid #e2e8f0;border-radius:10px;margin-top:10px}
+.pass{color:#15803d;font-weight:700}.fail{color:#dc2626;font-weight:700}
+pre{white-space:pre-wrap;background:#0f172a;color:#e2e8f0;padding:14px;border-radius:10px;font-size:12px}
 </style>
 </head>
 <body><main>
 <h1>KetemuTerus Security Test</h1>
-<p class="muted">Temporary read-only security test page.</p>
-<p>Login sebagai client terlebih dahulu, lalu jalankan pengujian keamanan dari halaman ini.</p>
-</main></body>
+<p class="muted">Read-only. Jalankan setelah login sebagai client.</p>
+<p id="session">Memeriksa session...</p>
+<button id="run" disabled>Jalankan Test</button>
+<div id="results"></div>
+<h3>Detail</h3><pre id="detail">-</pre>
+</main>
+<script>
+const supabase=window.supabase.createClient(
+  'https://bjoinxzfddwpjkijjbyr.supabase.co',
+  'sb_publishable_O47NBwd2a7Px7CE1SSU0Mw_I78zGoMj'
+);
+const $=id=>document.getElementById(id);
+let results=[];
+function add(name,pass,detail){results.push({name,status:pass?'PASS':'FAIL',detail});}
+function render(){
+  $('results').innerHTML=results.map(r=>'<div class="item"><b>'+r.name+'</b> <span class="'+(r.status==='PASS'?'pass':'fail')+'">'+r.status+'</span><br><small>'+r.detail+'</small></div>').join('');
+  $('detail').textContent=JSON.stringify(results,null,2);
+}
+async function run(){
+  $('run').disabled=true; results=[];
+  const {data:s,error:se}=await supabase.auth.getSession();
+  if(se||!s.session){add('Authenticated client session',false,'Tidak ada session.');render();return}
+  add('Authenticated client session',true,'Session aktif.');
+  const uid=s.session.user.id;
+  const {data:c,error:ce}=await supabase.from('clients').select('id,client_name,role,auth_user_id').eq('auth_user_id',uid).maybeSingle();
+  add('Own client record',!ce&&!!c&&c.role==='client'&&c.auth_user_id===uid,ce?ce.message:(c?'Client '+c.client_name:'Client tidak ditemukan'));
+  const {data:b,error:be}=await supabase.from('businesses').select('id').limit(1);
+  add('Direct businesses access',!!be||!b||b.length===0,be?be.message:'Tabel businesses terbaca langsung');
+  const {data:o,error:oe}=await supabase.rpc('client_card_detail',{p_card_code:'KT000011'});
+  add('Unauthorized card KT000011',!oe&&(!o||(Array.isArray(o)&&o.length===0)),oe?oe.message:'Tidak ada data kartu');
+  const {data:h,error:he}=await supabase.rpc('client_card_scan_history',{p_card_code:'KT000011',p_days:30});
+  add('Unauthorized history KT000011',!he&&(!h||(Array.isArray(h)&&h.length===0)),he?he.message:'Tidak ada history');
+  const {data:t,error:te}=await supabase.rpc('client_scan_trend',{p_days:7});
+  add('Client scan trend',!te,'7-day trend RPC '+(te?'error':'berhasil dipanggil'));
+  render(); $('run').disabled=false;
+}
+(async()=>{const {data}=await supabase.auth.getSession();if(data.session){$('session').textContent='Session client ditemukan.';$('run').disabled=false}else $('session').textContent='Belum login sebagai client.';})();
+$('run').onclick=run;
+</script>
+</body>
 </html>
