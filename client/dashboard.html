@@ -639,7 +639,7 @@ th{
         </div>
         <div id="detailReviewUrl" class="detail-review-url" style="display:none"></div>
         <a id="detailReview" class="review-link" href="#" target="_blank" rel="noopener">
-          Lihat Review di Google
+          Lihat Google Business & Review
         </a>
       </div>
     </div>
@@ -804,58 +804,6 @@ async function loadTrend(){
 
   const periodLabel =
     days + ' hari';
-
-
-  const insight =
-    document.getElementById(
-      'insightText'
-    );
-
-
-  if(!total){
-
-    insight.textContent =
-      'Belum ada aktivitas scan dalam ' +
-      periodLabel +
-      ' terakhir.';
-
-  }else{
-
-    const peakLabel =
-      peak
-        ? new Date(
-            peak.scan_date +
-            'T00:00:00'
-          ).toLocaleDateString(
-            'id-ID',
-            {
-              day:'2-digit',
-              month:'short'
-            }
-          )
-        : '-';
-
-
-    insight.textContent =
-      total +
-      ' scan tercatat dalam ' +
-      periodLabel +
-      ' terakhir. ' +
-      'QR menghasilkan ' +
-      qr +
-      ' scan dan NFC menghasilkan ' +
-      nfc +
-      ' scan. ' +
-      'Hari paling aktif: ' +
-      peakLabel +
-      ' dengan ' +
-      Number(
-        peak.total_scans || 0
-      ) +
-      ' scan.';
-
-  }
-
 
   msg.textContent =
     total +
@@ -1250,10 +1198,8 @@ async function openCardDetail(row){
         ? activityLabel(detail.last_scan)
         : 'Belum ada scan';
 
-    const googleBusinessUrl = detail.place_id
-      ? 'https://www.google.com/maps/search/?api=1&query=Google&query_place_id=' +
-        encodeURIComponent(detail.place_id)
-      : '';
+    const googleBusinessUrl =
+      'https://www.google.com/search?hl=en-ID&gl=id&q=Avenue+Coffee+and+Eatery,+Ruko+Shila+D5+No.11,+Bojongsari+Lama,+Kec.+Sawangan,+Kota+Depok,+Jawa+Barat+16516&ludocid=5876426429386341281&lsig=AB86z5VVcxNmzqHY-tG4tphbipJC#lrd=0x2e69e92fcd82e33b:0x518d42b3f04a3ba1,1,,,,';
 
     console.log('GOOGLE BUSINESS URL:', googleBusinessUrl);
 
