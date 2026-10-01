@@ -280,11 +280,7 @@ th{
   .container{
     margin-top:22px
   }
-
-  #actionCenter{grid-template-columns:1fr 1fr !important}
-  #actionCenter > div{min-height:82px}
-
-  .panel > div[style*="repeat(4,1fr)"]{
+.panel > div[style*="repeat(4,1fr)"]{
     grid-template-columns:1fr 1fr !important;
   }
 
@@ -302,7 +298,7 @@ th{
 }
 .scan-history-row{
   display:grid;
-  grid-template-columns:1.3fr .7fr 2fr;
+  grid-template-columns:1.5fr .7fr;
   gap:10px;
   padding:10px 12px;
   border-bottom:1px solid #e2e8f0;
@@ -347,16 +343,11 @@ th{
   color:#475569
 }
 @media(max-width:600px){
-  #actionCenter{grid-template-columns:1fr !important}
-  .scan-history-row{
+.scan-history-row{
     grid-template-columns:1fr 1fr;
-  }
-  .scan-history-row .ua{
-    grid-column:1/-1;
   }
 }
 </style>
-<!-- Vercel Git integration test 2026-09-29 -->
 </head>
 
 <body>
@@ -424,14 +415,6 @@ th{
 
 
   <!-- ACTION CENTER -->
-  <section class="panel">
-    <h2>Perhatian &amp; Insight</h2>
-    <div id="actionCenter" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
-      <div class="loading">Menganalisis aktivitas kartu...</div>
-    </div>
-  </section>
-
-
   <!-- PERFORMANCE OVERVIEW -->
   <section class="panel">
 
@@ -475,24 +458,6 @@ th{
 
 
   <!-- INSIGHT -->
-  <section
-    class="panel"
-    id="insightPanel"
-    style="background:#eff6ff;border-color:#bfdbfe"
-  >
-
-    <h2>Business Insight</h2>
-
-    <div
-      id="insightText"
-      style="color:#1e40af;line-height:1.6"
-    >
-      Menganalisis aktivitas...
-    </div>
-
-  </section>
-
-
   <!-- SCAN TREND -->
   <section class="panel">
 
@@ -567,25 +532,7 @@ th{
 
     <h2>Card Performance</h2>
 
-    <div class="filters">
-
-      <select id="source">
-        <option value="">All Sources</option>
-        <option value="qr">QR</option>
-        <option value="nfc">NFC</option>
-      </select>
-
-      <select id="period">
-        <option value="all">All Time</option>
-        <option value="today">Today</option>
-        <option value="7">7 Days</option>
-        <option value="30">30 Days</option>
-      </select>
-
-    </div>
-
-    <div
-      id="message"
+    <div id="message"
       class="loading"
     >
       Memuat analytics...
@@ -774,12 +721,7 @@ async function loadTrend(){
   const chart =
     document.getElementById('trendChart');
 
-  const days =
-    Number(
-      document.getElementById(
-        'trendPeriod'
-      ).value
-    );
+  const days = 7;
 
 
   const {data,error} =
@@ -997,47 +939,8 @@ async function loadTrend(){
 
 async function loadAnalytics(){
 
-  const source =
-    document.getElementById(
-      'source'
-    ).value || null;
-
-
-  const period =
-    document.getElementById(
-      'period'
-    ).value;
-
-
-  let startDate=null;
-
-
-  if(period === 'today'){
-
-    startDate =
-      new Date();
-
-    startDate.setHours(
-      0,0,0,0
-    );
-
-  }
-
-
-  if(
-    period === '7' ||
-    period === '30'
-  ){
-
-    startDate =
-      new Date();
-
-    startDate.setDate(
-      startDate.getDate() -
-      Number(period)
-    );
-
-  }
+  const source = null;
+  const startDate = null;
 
 
   const {data,error} =
@@ -1046,11 +949,8 @@ async function loadAnalytics(){
       {
         p_business_name:null,
         p_card_code:null,
-        p_source:source,
-        p_start_date:
-          startDate
-            ? startDate.toISOString()
-            : null,
+        p_source:null,
+        p_start_date:null,
         p_end_date:null
       }
     );
@@ -1216,57 +1116,7 @@ async function loadAnalytics(){
     summaryLastScan
       ? activityLabel(summaryLastScan.last_scan)
       : '-';
-
-
-  const actionCenter = document.getElementById('actionCenter');
-  const neverScanCount = clientRows.filter(r => Number(r.total_scans || 0) === 0).length;
-  const noActivity7Count = clientRows.filter(r => Number(r.scans_7_days || 0) === 0).length;
-  const latestScan = clientRows
-    .filter(r => r.last_scan)
-    .sort((a,b) => new Date(b.last_scan) - new Date(a.last_scan))[0];
-
-  const actions = [];
-
-  if (neverScanCount > 0) {
-    actions.push(
-      '<div style="padding:14px;border-radius:12px;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412">' +
-      '<strong>Perlu perhatian</strong><div style="margin-top:5px">' +
-      neverScanCount + ' kartu belum pernah menghasilkan scan.</div></div>'
-    );
-  } else if (active > 0) {
-    actions.push(
-      '<div style="padding:14px;border-radius:12px;background:#f0fdf4;border:1px solid #bbf7d0;color:#166534">' +
-      '<strong>Semua kartu aktif</strong><div style="margin-top:5px">Semua kartu yang terhubung sudah memiliki aktivitas scan.</div></div>'
-    );
-  }
-
-  if (noActivity7Count > 0) {
-    actions.push(
-      '<div style="padding:14px;border-radius:12px;background:#f8fafc;border:1px solid #e2e8f0;color:#475569">' +
-      '<strong>Aktivitas 7 hari</strong><div style="margin-top:5px">' +
-      noActivity7Count + ' kartu belum memiliki scan dalam 7 hari terakhir.</div></div>'
-    );
-  }
-
-  if (latestScan) {
-    actions.push(
-      '<div style="padding:14px;border-radius:12px;background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af">' +
-      '<strong>Scan terakhir</strong><div style="margin-top:5px">' +
-      activityLabel(latestScan.last_scan) + '</div></div>'
-    );
-  }
-
-  if (!actions.length) {
-    actions.push(
-      '<div style="padding:14px;border-radius:12px;background:#f8fafc;border:1px solid #e2e8f0;color:#475569">' +
-      'Belum ada rekomendasi tindakan.</div>'
-    );
-  }
-
-  actionCenter.innerHTML = actions.join('');
-
-
-  if(!clientRows.length){
+if(!clientRows.length){
 
     rows.innerHTML =
       '<tr>' +
@@ -1401,8 +1251,8 @@ async function openCardDetail(row){
         : 'Belum ada scan';
 
     const googleBusinessUrl = detail.place_id
-      ? 'https://www.google.com/search?q=avenue+coffee+and+eatery&oq=avnue+cof&sourceid=chrome&ie=UTF-8#lrd=' +
-        '0x2e69e92fcd82e33b:0x518d42b3f04a3ba1,1,,,,'
+      ? 'https://www.google.com/maps/search/?api=1&query=Google&query_place_id=' +
+        encodeURIComponent(detail.place_id)
       : '';
 
     console.log('GOOGLE BUSINESS URL:', googleBusinessUrl);
@@ -1495,11 +1345,9 @@ function renderCardDetailHistory(history){
   box.innerHTML=history.map(r=>{
     const source=(r.source||'unknown').toUpperCase();
     const when=new Date(r.scanned_at).toLocaleString('id-ID');
-    const ua=r.user_agent||'-';
     return '<div class="scan-history-row">'+
       '<div>'+esc(when)+'</div>'+
       '<div class="scan-source">'+esc(source)+'</div>'+
-      '<div class="ua" style="color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+esc(ua)+'">'+esc(ua)+'</div>'+
       '</div>';
   }).join('');
 }
@@ -1528,30 +1376,6 @@ document.getElementById('rows').addEventListener('click',e=>{
 });
 
 /* FILTERS */
-
-document
-  .getElementById('source')
-  .addEventListener(
-    'change',
-    loadAnalytics
-  );
-
-
-document
-  .getElementById('trendPeriod')
-  .addEventListener(
-    'change',
-    loadTrend
-  );
-
-
-document
-  .getElementById('period')
-  .addEventListener(
-    'change',
-    loadAnalytics
-  );
-
 
 /* LOGOUT */
 
