@@ -122,6 +122,65 @@ input{
   color:#fff;
 }
 
+.edit-btn{
+  background:#eff6ff;
+  color:#1d4ed8;
+  border:1px solid #bfdbfe;
+  padding:7px 11px;
+  font-size:12px;
+}
+
+.edit-btn:hover{background:#dbeafe;}
+
+.modal{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(17,24,39,.45);
+  z-index:1000;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}
+
+.modal.show{display:flex;}
+
+.modal-card{
+  width:100%;
+  max-width:520px;
+  background:#fff;
+  border-radius:14px;
+  padding:24px;
+  box-shadow:0 20px 50px rgba(0,0,0,.18);
+}
+
+.modal-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:20px;
+}
+
+.modal-header h2{margin:0;}
+
+.modal-close{
+  background:#f3f4f6;
+  color:#374151;
+  padding:7px 10px;
+}
+
+.modal-actions{
+  display:flex;
+  gap:10px;
+  justify-content:flex-end;
+  margin-top:20px;
+}
+
+.readonly{
+  background:#f9fafb;
+  color:#6b7280;
+}
+
 .message{
   margin-top:12px;
   font-size:14px;
@@ -437,6 +496,7 @@ th{
   <th>Place ID</th>
   <th>Review URL</th>
   <th>Activated</th>
+  <th>Aksi</th>
 </tr>
 
 </thead>
@@ -444,7 +504,7 @@ th{
 <tbody id="inventory">
 
 <tr>
-  <td colspan="6" class="empty">
+  <td colspan="7" class="empty">
     Memuat inventory...
   </td>
 </tr>
@@ -459,6 +519,33 @@ th{
 
 </div>
 
+
+
+<div class="modal" id="editModal" aria-hidden="true">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h2>Edit Bisnis</h2>
+      <button class="modal-close" type="button" id="closeEditModal">✕</button>
+    </div>
+    <div>
+      <label>Card Code</label>
+      <input id="editCardCode" class="readonly" readonly>
+    </div>
+    <div style="margin-top:12px">
+      <label>Nama Bisnis</label>
+      <input id="editBusinessName" placeholder="Nama bisnis">
+    </div>
+    <div style="margin-top:12px">
+      <label>Google Place ID</label>
+      <input id="editPlaceId" placeholder="ChIJ...">
+    </div>
+    <p id="editMessage" class="message"></p>
+    <div class="modal-actions">
+      <button type="button" id="cancelEdit">Batal</button>
+      <button type="button" class="primary" id="saveEdit">Simpan Perubahan</button>
+    </div>
+  </div>
+</div>
 
 <script>
 
@@ -589,7 +676,7 @@ async function loadInventory(){
 
     inventory.innerHTML=`
       <tr>
-        <td colspan="6" class="empty">
+        <td colspan="7" class="empty">
           Gagal memuat inventory: ${escapeHtml(error.message)}
         </td>
       </tr>
@@ -622,7 +709,7 @@ async function loadInventory(){
 
     inventory.innerHTML=`
       <tr>
-        <td colspan="6" class="empty">
+        <td colspan="7" class="empty">
           Belum ada kartu.
         </td>
       </tr>
@@ -679,6 +766,14 @@ async function loadInventory(){
 
         <td>
           ${activated}
+        </td>
+
+        <td>
+          ${
+            card.status==='ACTIVE'
+            ? `<button class="edit-btn" data-card-code="${escapeHtml(card.card_code)}" data-business-name="${escapeHtml(card.business_name || '')}" data-place-id="${escapeHtml(card.place_id || '')}" onclick="openEditBusiness(this)">Edit</button>`
+            : '-'
+          }
         </td>
 
       </tr>
@@ -827,6 +922,87 @@ document.getElementById('activate')
 
 });
 
+
+
+/* EDIT BUSINESS */
+
+function openEditBusiness(button){
+  document.getElementById('editCardCode').value = button.dataset.cardCode || '';
+  document.getElementById('editBusinessName').value = button.dataset.businessName || '';
+  document.getElementById('editPlaceId').value = button.dataset.placeId || '';
+
+  const message=document.getElementById('editMessage');
+  message.textContent='';
+  message.className='message';
+
+  const modal=document.getElementById('editModal');
+  modal.classList.add('show');
+  modal.setAttribute('aria-hidden','false');
+}
+
+function closeEditBusiness(){
+  const modal=document.getElementById('editModal');
+  modal.classList.remove('show');
+  modal.setAttribute('aria-hidden','true');
+}
+
+document.getElementById('closeEditModal')
+.addEventListener('click',closeEditBusiness);
+
+document.getElementById('cancelEdit')
+.addEventListener('click',closeEditBusiness);
+
+document.getElementById('editModal')
+.addEventListener('click',(event)=>{
+  if(event.target.id==='editModal') closeEditBusiness();
+});
+
+document.getElementById('saveEdit')
+.addEventListener('click',async()=>{
+  const cardCode=document.getElementById('editCardCode').value.trim();
+  const businessName=document.getElementById('editBusinessName').value.trim();
+  const placeId=document.getElementById('editPlaceId').value.trim();
+  const message=document.getElementById('editMessage');
+  const button=document.getElementById('saveEdit');
+
+  message.textContent='';
+  message.className='message';
+
+  if(!cardCode || !businessName || !placeId){
+    message.textContent='Nama bisnis dan Google Place ID wajib diisi.';
+    message.classList.add('error');
+    return;
+  }
+
+  button.disabled=true;
+  button.textContent='Menyimpan...';
+
+  const {data,error}=await supabase.rpc(
+    'admin_update_business',
+    {
+      p_card_code:cardCode,
+      p_business_name:businessName,
+      p_place_id:placeId
+    }
+  );
+
+  button.disabled=false;
+  button.textContent='Simpan Perubahan';
+
+  if(error){
+    message.textContent=error.message;
+    message.classList.add('error');
+    return;
+  }
+
+  message.textContent='Perubahan berhasil disimpan.';
+  message.classList.add('success');
+
+  await loadInventory();
+  await loadAnalytics();
+
+  setTimeout(closeEditBusiness,500);
+});
 
 /* LOGOUT */
 
