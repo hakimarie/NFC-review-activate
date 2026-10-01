@@ -572,6 +572,7 @@ th{
   Powered by <a href="https://www.ketemuterus.biz.id/" target="_blank" rel="noopener" style="color:#2563eb;text-decoration:none;font-weight:700">KetemuTerus.biz.id</a>
 </footer>
 
+<div class="detail-overlay" id="passwordOverlay" style="z-index:2000;display:none"><div class="detail-modal" style="width:min(460px,100%)"><div class="detail-head"><div><div class="eyebrow">AKUN CLIENT</div><h2 style="margin:5px 0 0;font-size:24px">Buat Password Baru</h2><div style="color:#64748b;margin-top:6px">Untuk keamanan, password sementara harus diganti sebelum Anda dapat menggunakan dashboard.</div></div></div><div class="detail-body"><label>Password baru</label><input id="newPassword" type="password" autocomplete="new-password" placeholder="Minimal 8 karakter" style="width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:9px;font-size:15px"><label style="display:block;margin-top:16px">Konfirmasi password</label><input id="confirmPassword" type="password" autocomplete="new-password" placeholder="Ulangi password baru" style="width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:9px;font-size:15px"><div id="passwordError" class="error" style="min-height:20px"></div><button id="savePassword" style="width:100%;margin-top:10px;padding:13px;border:0;border-radius:9px;background:#2563eb;color:#fff;font-size:15px;font-weight:600">Simpan Password & Lanjutkan</button></div></div></div>
 <div class="detail-overlay" id="detailOverlay">
   <div class="detail-modal" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
     <div class="detail-head">
@@ -689,6 +690,29 @@ function activityLabel(value){
   if(days===1) return 'Yesterday';
   if(days<7) return days+' days ago';
   return d.toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'});
+}
+
+async function enforceFirstLogin(session){
+  if(session?.user?.user_metadata?.must_change_password !== true) return;
+  const overlay=document.getElementById('passwordOverlay');
+  const errorBox=document.getElementById('passwordError');
+  const button=document.getElementById('savePassword');
+  const first=document.getElementById('newPassword');
+  const second=document.getElementById('confirmPassword');
+  overlay.style.display='flex';
+  return new Promise(resolve=>{
+    button.onclick=async()=>{
+      errorBox.textContent='';
+      if(first.value.length<8){errorBox.textContent='Password minimal 8 karakter.';return;}
+      if(first.value!==second.value){errorBox.textContent='Konfirmasi password tidak sama.';return;}
+      button.disabled=true;
+      button.textContent='Menyimpan...';
+      const result=await supabase.auth.updateUser({password:first.value,data:{must_change_password:false}});
+      if(result.error){errorBox.textContent='Gagal mengubah password: '+result.error.message;button.disabled=false;button.textContent='Simpan Password & Lanjutkan';return;}
+      overlay.style.display='none';
+      resolve();
+    };
+  });
 }
 
 async function getClient(){
@@ -1357,6 +1381,8 @@ document
 
   }
 
+
+  await enforceFirstLogin(data.session);
 
   const client =
     await getClient();
