@@ -47,23 +47,23 @@ async function redirectIfLoggedIn(){
 
   const {data:client,error}=await supabase
     .from('clients')
-    .select('role')
+    .select('role,status')
     .eq('auth_user_id',session.user.id)
     .single();
 
   if(error || !client){
-    console.error('ROLE LOOKUP FAILED:',error);
     await supabase.auth.signOut();
     return;
   }
 
-  if(client.role==='admin'){
-    window.location.replace('/admin/');
+  if(client.role==='client' && client.status==='active'){
+    window.location.replace('/client/dashboard.html');
     return;
   }
 
-  if(client.role==='client'){
-    window.location.replace('/client/dashboard.html');
+  if(client.role==='admin'){
+    await supabase.auth.signOut();
+    document.getElementById('error').textContent='Anda sedang login sebagai Admin. Silakan login dengan akun Client.';
     return;
   }
 
