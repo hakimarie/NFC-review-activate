@@ -715,12 +715,19 @@ async function enforceFirstLogin(session){
   });
 }
 
-async function getClient(){
+async function getClient(session){
+
+  if(!session?.user?.id){
+    window.location.href='/client/';
+    return null;
+  }
 
   const {data,error} =
     await supabase
       .from('clients')
-      .select('client_name,role')
+      .select('client_name,role,brand_name,industry,website,status')
+      .eq('auth_user_id',session.user.id)
+      .eq('role','client')
       .single();
 
   if(
@@ -729,10 +736,13 @@ async function getClient(){
     data.role !== 'client'
   ){
 
+    console.error('CLIENT LOOKUP FAILED:', error);
     window.location.href='/client/';
     return null;
 
-  }return data;
+  }
+
+  return data;
 
 }
 
@@ -1385,7 +1395,7 @@ document
   await enforceFirstLogin(data.session);
 
   const client =
-    await getClient();
+    await getClient(data.session);
 
 
   if(client){
