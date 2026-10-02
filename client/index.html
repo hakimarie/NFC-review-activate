@@ -42,7 +42,32 @@ const supabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
 async function redirectIfLoggedIn(){
   const {data}=await supabase.auth.getSession();
-  if(data.session) window.location.replace('/client/dashboard.html');
+  const session=data.session;
+  if(!session) return;
+
+  const {data:client,error}=await supabase
+    .from('clients')
+    .select('role')
+    .eq('auth_user_id',session.user.id)
+    .single();
+
+  if(error || !client){
+    console.error('ROLE LOOKUP FAILED:',error);
+    await supabase.auth.signOut();
+    return;
+  }
+
+  if(client.role==='admin'){
+    window.location.replace('/admin/');
+    return;
+  }
+
+  if(client.role==='client'){
+    window.location.replace('/client/dashboard.html');
+    return;
+  }
+
+  await supabase.auth.signOut();
 }
 
 async function login(){
