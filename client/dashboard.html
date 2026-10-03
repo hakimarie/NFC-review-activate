@@ -448,13 +448,11 @@ th{
       </div>
 
       <div class="stat">
-        <div class="label">QR Scans</div>
-        <div class="value" id="qrScans">-</div>
+        
       </div>
 
       <div class="stat">
-        <div class="label">NFC Scans</div>
-        <div class="value" id="nfcScans">-</div>
+        
       </div>
 
       <div class="stat">
@@ -532,10 +530,7 @@ th{
         <strong id="trendQr">0</strong>
       </span>
 
-      <span>
-        NFC:
-        <strong id="trendNfc">0</strong>
-      </span>
+      
 
     </div>
 
@@ -563,9 +558,7 @@ th{
             <th>Card</th>
             <th>Business</th>
             <th>Status</th>
-            <th>QR</th>
-            <th>NFC</th>
-            <th>Total</th>
+            <th>Total Scan</th>
             <th>Today</th>
             <th>7 Days</th>
             <th>Last Activity</th>
@@ -605,12 +598,10 @@ th{
           <div class="detail-value" id="detailTotal">-</div>
         </div>
         <div class="detail-card">
-          <div class="label">QR Scan</div>
-          <div class="detail-value" id="detailQr">-</div>
+          
         </div>
         <div class="detail-card">
-          <div class="label">NFC Scan</div>
-          <div class="detail-value" id="detailNfc">-</div>
+          
         </div>
         <div class="detail-card">
           <div class="label">Today</div>
@@ -841,14 +832,7 @@ async function loadTrend(){
     );
 
 
-  document.getElementById(
-    'trendQr'
-  ).textContent = qr;
-
-
-  document.getElementById(
-    'trendNfc'
-  ).textContent = nfc;
+  
 
 
   const periodLabel =
@@ -1000,8 +984,6 @@ async function loadAnalytics(){
         </td>
         <td>${esc(r.business_name || '-')}</td>
         <td><span class="badge">${esc(r.card_status || '-')}</span></td>
-        <td>${Number(r.qr_scans || 0)}</td>
-        <td>${Number(r.nfc_scans || 0)}</td>
         <td><strong>${Number(r.total_scans || 0)}</strong></td>
         <td>${Number(r.scans_today || 0)}</td>
         <td>${Number(r.scans_7_days || 0)}</td>
@@ -1049,8 +1031,7 @@ async function loadAnalytics(){
 
   document.getElementById('activeCards').textContent = active;
   document.getElementById('totalScans').textContent = total;
-  document.getElementById('qrScans').textContent = qr;
-  document.getElementById('nfcScans').textContent = nfc;
+  
   document.getElementById('today').textContent = today;
   document.getElementById('sevenDays').textContent = seven;
 
@@ -1127,8 +1108,6 @@ async function openCardDetail(row){
     console.log('CARD DETAIL:', detail);
     console.log('GOOGLE REVIEW URL:', detail.review_url);
     document.getElementById('detailTotal').textContent=Number(detail.total_scans||0);
-    document.getElementById('detailQr').textContent=Number(detail.qr_scans||0);
-    document.getElementById('detailNfc').textContent=Number(detail.nfc_scans||0);
     document.getElementById('detailToday').textContent=Number(detail.scans_today||0);
     document.getElementById('detailSeven').textContent=Number(detail.scans_7_days||0);
     document.getElementById('detailStatus').textContent=detail.card_status||'-';
@@ -1205,8 +1184,7 @@ function renderCardDetailChart(history){
   const qr=rows.reduce((s,r)=>s+r.qr,0);
   const nfc=rows.reduce((s,r)=>s+r.nfc,0);
 
-  document.getElementById('detailTrendSummary').textContent=
-    total+' scan • QR '+qr+' • NFC '+nfc;
+  document.getElementById('detailTrendSummary').textContent=total+' scan';
 
   chart.innerHTML=rows.map(r=>{
     const h=r.total?Math.max(10,Math.round((r.total/max)*105)):3;
@@ -1228,7 +1206,7 @@ function renderCardDetailHistory(history){
   }
 
   box.innerHTML=history.map(r=>{
-    const source=(r.source||'unknown').toUpperCase();
+    const source='SCAN';
     const when=new Date(r.scanned_at).toLocaleString('id-ID');
     return '<div class="scan-history-row">'+
       '<div>'+esc(when)+'</div>'+
