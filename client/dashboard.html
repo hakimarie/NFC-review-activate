@@ -981,7 +981,11 @@ async function loadAnalytics(){
 
   clientRows =
     data || [];
-
+console.log('RPC returned:', clientRows.length);
+console.log(
+  'Cards:',
+  clientRows.map(r => r.card_code)
+);
 // TEMP DEBUG: authenticated RPC diagnostics
 const debugBox = document.getElementById('rpcDebug');
 
@@ -1133,7 +1137,9 @@ if (debugBox) {
       ? activityLabel(summaryLastScan.last_scan)
       : '-';
 if(!clientRows.length){
-
+console.log('CLIENT ROWS BEFORE RENDER:', clientRows);
+console.log('CLIENT ROW COUNT:', clientRows.length);
+console.log('ROWS ELEMENT:', rows);
     rows.innerHTML =
       '<tr>' +
       '<td colspan="9" class="empty">' +
@@ -1146,77 +1152,61 @@ if(!clientRows.length){
   }
 
 
-  rows.innerHTML =
-    clientRows.map(
-      r =>
+  rows.innerHTML = clientRows.map(r => {
 
-        '<tr>' +
+  return `
+    <tr>
+      <td>
+        <a href="#"
+           class="card-link"
+           data-card="${esc(r.card_code)}">
+          ${esc(r.card_code)}
+        </a>
+      </td>
 
-        '<td>' +
-        '<a href="#" class="card-link" data-card="' +
-        esc(r.card_code) +
-        '">' +
-        esc(r.card_code) +
-        '</a>' +
-        '</td>' +
+      <td>
+        ${esc(r.business_name || '-')}
+      </td>
 
-        '<td>' +
-        esc(
-          r.business_name || '-'
-        ) +
-        '</td>' +
+      <td>
+        <span class="badge">
+          ${esc(r.card_status || '-')}
+        </span>
+      </td>
 
-        '<td>' +
-        '<span class="badge">' +
-        esc(r.card_status) +
-        '</span>' +
-        '</td>' +
+      <td>
+        ${Number(r.qr_scans || 0)}
+      </td>
 
-        '<td>' +
-        Number(
-          r.qr_scans || 0
-        ) +
-        '</td>' +
+      <td>
+        ${Number(r.nfc_scans || 0)}
+      </td>
 
-        '<td>' +
-        Number(
-          r.nfc_scans || 0
-        ) +
-        '</td>' +
+      <td>
+        <strong>
+          ${Number(r.total_scans || 0)}
+        </strong>
+      </td>
 
-        '<td>' +
-        '<strong>' +
-        Number(
-          r.total_scans || 0
-        ) +
-        '</strong>' +
-        '</td>' +
+      <td>
+        ${Number(r.scans_today || 0)}
+      </td>
 
-        '<td>' +
-        Number(
-          r.scans_today || 0
-        ) +
-        '</td>' +
+      <td>
+        ${Number(r.scans_7_days || 0)}
+      </td>
 
-        '<td>' +
-        Number(
-          r.scans_7_days || 0
-        ) +
-        '</td>' +
-
-        '<td>' +
-        (
+      <td>
+        ${
           r.last_scan
             ? activityLabel(r.last_scan)
             : '-'
-        ) +
-        '</td>' +
+        }
+      </td>
+    </tr>
+  `;
 
-        '</tr>'
-
-    ).join('');
-
-}
+}).join('');
 
 
 
