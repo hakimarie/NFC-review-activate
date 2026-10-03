@@ -365,7 +365,7 @@ th{
 
 <body>
 
-<pre id="rpcDebug" aria-label="RPC Debug"></pre>
+<pre id="rpcDebug" aria-label="RPC Debug" style="display:none"></pre>
 
 <header>
   <div class="logo">Ketemu<span>Terus</span><small>Visibility Dashboard</small></div>
@@ -976,38 +976,39 @@ async function loadAnalytics(){
     return;
   }
 
-  clientRows = data || [];
+  clientRows = Array.isArray(data) ? data : [];
 
-  const debugBox =
-    document.getElementById('rpcDebug');
-
-  if(debugBox){
-    const sessionResult =
-      await supabase.auth.getSession();
-
-    debugBox.style.display='block';
-
-    debugBox.textContent =
-      JSON.stringify({
-        session:
-          sessionResult.data?.session
-            ? 'ACTIVE'
-            : 'NO SESSION',
-        user_id:
-          sessionResult.data?.session?.user?.id
-            || null,
-        row_count:
-          Array.isArray(data)
-            ? data.length
-            : null,
-        card_codes:
-          Array.isArray(data)
-            ? data.map(r => r.card_code)
-            : [],
-        error:
-          error || null
-      }, null, 2);
+  /*
+   * Render the card table immediately after the RPC succeeds.
+   * This keeps the main dashboard usable even if a secondary
+   * summary element has a runtime problem.
+   */
+  if(!clientRows.length){
+    rows.innerHTML =
+      '<tr><td colspan="9" class="empty">Belum ada data kartu.</td></tr>';
+    msg.textContent='';
+    return;
   }
+
+  rows.innerHTML = clientRows.map(r => {
+    return `
+      <tr>
+        <td>
+          <a href="#" class="card-link" data-card="${esc(r.card_code)}">
+            ${esc(r.card_code)}
+          </a>
+        </td>
+        <td>${esc(r.business_name || '-')}</td>
+        <td><span class="badge">${esc(r.card_status || '-')}</span></td>
+        <td>${Number(r.qr_scans || 0)}</td>
+        <td>${Number(r.nfc_scans || 0)}</td>
+        <td><strong>${Number(r.total_scans || 0)}</strong></td>
+        <td>${Number(r.scans_today || 0)}</td>
+        <td>${Number(r.scans_7_days || 0)}</td>
+        <td>${r.last_scan ? activityLabel(r.last_scan) : '-'}</td>
+      </tr>
+    `;
+  }).join('');
 
   msg.textContent='';
 
@@ -1086,53 +1087,8 @@ async function loadAnalytics(){
       ? activityLabel(summaryLastScan.last_scan)
       : '-';
 
-  if(!clientRows.length){
-    rows.innerHTML =
-      '<tr>' +
-      '<td colspan="9" class="empty">' +
-      'Belum ada data kartu.' +
-      '</td>' +
-      '</tr>';
-    return;
-  }
+  // Card table was rendered immediately after the RPC.
 
-  rows.innerHTML = clientRows.map(r => {
-    return `
-      <tr>
-        <td>
-          <a href="#"
-             class="card-link"
-             data-card="${esc(r.card_code)}">
-            ${esc(r.card_code)}
-          </a>
-        </td>
-
-        <td>
-          ${esc(r.business_name || '-')}
-        </td>
-
-        <td>
-          <span class="badge">
-            ${esc(r.card_status || '-')}
-          </span>
-        </td>
-
-        <td>${Number(r.qr_scans || 0)}</td>
-        <td>${Number(r.nfc_scans || 0)}</td>
-
-        <td>
-          <strong>${Number(r.total_scans || 0)}</strong>
-        </td>
-
-        <td>${Number(r.scans_today || 0)}</td>
-        <td>${Number(r.scans_7_days || 0)}</td>
-
-        <td>
-          ${r.last_scan ? activityLabel(r.last_scan) : '-'}
-        </td>
-      </tr>
-    `;
-  }).join('');
 }
 
 async function openCardDetail(row){
@@ -1188,7 +1144,7 @@ async function openCardDetail(row){
 
     if(googleBusinessUrl){
       document.getElementById('detailReviewUrl').textContent = '';
-      review.href = googleBusinessUrl;
+      review.href = detail.review_url || googleBusinessUrl;
       review.target = '_blank';
       review.rel = 'noopener noreferrer';
       review.style.display = 'inline-block';
