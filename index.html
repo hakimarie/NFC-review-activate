@@ -99,7 +99,10 @@ function getCardCode(){
 async function logCardScan(cardCode){
   try{
     const p=new URLSearchParams(window.location.search);
-    const source=p.get('src');
+    let source=p.get('src');
+    // KT000001 was accidentally locked with the permanent URL without ?src=nfc.
+    // Only this card uses the NFC fallback; all other cards keep strict source detection.
+    if(!source && cardCode==='KT000001') source='nfc';
     if(source!=='qr'&&source!=='nfc') return;
     await supabase.rpc('log_card_scan',{p_card_code:cardCode,p_source:source,p_user_agent:navigator.userAgent});
   }catch(e){}
