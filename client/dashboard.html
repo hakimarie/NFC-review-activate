@@ -972,62 +972,167 @@ async function loadAnalytics(){
       'Gagal memuat analytics: ' +
       error.message;
 
-    rows.innerHTML = clientRows.map(r => {
+    rows.innerHTML='';
+    return;
+  }
 
-  return `
-    <tr>
-      <td>
-        <a href="#"
-           class="card-link"
-           data-card="${esc(r.card_code)}">
-          ${esc(r.card_code)}
-        </a>
-      </td>
+  clientRows = data || [];
 
-      <td>
-        ${esc(r.business_name || '-')}
-      </td>
+  const debugBox =
+    document.getElementById('rpcDebug');
 
-      <td>
-        <span class="badge">
-          ${esc(r.card_status || '-')}
-        </span>
-      </td>
+  if(debugBox){
+    const sessionResult =
+      await supabase.auth.getSession();
 
-      <td>
-        ${Number(r.qr_scans || 0)}
-      </td>
+    debugBox.style.display='block';
 
-      <td>
-        ${Number(r.nfc_scans || 0)}
-      </td>
+    debugBox.textContent =
+      JSON.stringify({
+        session:
+          sessionResult.data?.session
+            ? 'ACTIVE'
+            : 'NO SESSION',
+        user_id:
+          sessionResult.data?.session?.user?.id
+            || null,
+        row_count:
+          Array.isArray(data)
+            ? data.length
+            : null,
+        card_codes:
+          Array.isArray(data)
+            ? data.map(r => r.card_code)
+            : [],
+        error:
+          error || null
+      }, null, 2);
+  }
 
-      <td>
-        <strong>
-          ${Number(r.total_scans || 0)}
-        </strong>
-      </td>
+  msg.textContent='';
 
-      <td>
-        ${Number(r.scans_today || 0)}
-      </td>
+  const active =
+    clientRows.filter(
+      r => r.card_status === 'ACTIVE'
+    ).length;
 
-      <td>
-        ${Number(r.scans_7_days || 0)}
-      </td>
+  const total =
+    clientRows.reduce(
+      (s,r) => s + Number(r.total_scans || 0),
+      0
+    );
 
-      <td>
-        ${
-          r.last_scan
-            ? activityLabel(r.last_scan)
-            : '-'
-        }
-      </td>
-    </tr>
-  `;
+  const qr =
+    clientRows.reduce(
+      (s,r) => s + Number(r.qr_scans || 0),
+      0
+    );
 
-}).join('');
+  const nfc =
+    clientRows.reduce(
+      (s,r) => s + Number(r.nfc_scans || 0),
+      0
+    );
 
+  const today =
+    clientRows.reduce(
+      (s,r) => s + Number(r.scans_today || 0),
+      0
+    );
+
+  const seven =
+    clientRows.reduce(
+      (s,r) => s + Number(r.scans_7_days || 0),
+      0
+    );
+
+  document.getElementById('activeCards').textContent = active;
+  document.getElementById('totalScans').textContent = total;
+  document.getElementById('qrScans').textContent = qr;
+  document.getElementById('nfcScans').textContent = nfc;
+  document.getElementById('today').textContent = today;
+  document.getElementById('sevenDays').textContent = seven;
+
+  const summaryLastScan =
+    clientRows
+      .filter(r => r.last_scan)
+      .sort(
+        (a,b) =>
+          new Date(b.last_scan) -
+          new Date(a.last_scan)
+      )[0];
+
+  const neverScanned =
+    clientRows.filter(
+      r => Number(r.total_scans || 0) === 0
+    ).length;
+
+  document.getElementById('summaryActive').textContent = active;
+  document.getElementById('summaryTotal').textContent = total;
+  document.getElementById('summaryNever').textContent = neverScanned;
+
+  document.getElementById('clientName').textContent =
+    'Client Dashboard';
+
+  document.getElementById('businessName').textContent =
+    [...new Set(
+      clientRows
+        .map(r => r.business_name)
+        .filter(Boolean)
+    )].join(' • ') || 'Business Overview';
+
+  document.getElementById('summaryLast').textContent =
+    summaryLastScan
+      ? activityLabel(summaryLastScan.last_scan)
+      : '-';
+
+  if(!clientRows.length){
+    rows.innerHTML =
+      '<tr>' +
+      '<td colspan="9" class="empty">' +
+      'Belum ada data kartu.' +
+      '</td>' +
+      '</tr>';
+    return;
+  }
+
+  rows.innerHTML = clientRows.map(r => {
+    return `
+      <tr>
+        <td>
+          <a href="#"
+             class="card-link"
+             data-card="${esc(r.card_code)}">
+            ${esc(r.card_code)}
+          </a>
+        </td>
+
+        <td>
+          ${esc(r.business_name || '-')}
+        </td>
+
+        <td>
+          <span class="badge">
+            ${esc(r.card_status || '-')}
+          </span>
+        </td>
+
+        <td>${Number(r.qr_scans || 0)}</td>
+        <td>${Number(r.nfc_scans || 0)}</td>
+
+        <td>
+          <strong>${Number(r.total_scans || 0)}</strong>
+        </td>
+
+        <td>${Number(r.scans_today || 0)}</td>
+        <td>${Number(r.scans_7_days || 0)}</td>
+
+        <td>
+          ${r.last_scan ? activityLabel(r.last_scan) : '-'}
+        </td>
+      </tr>
+    `;
+  }).join('');
 
 
 async function openCardDetail(row){
