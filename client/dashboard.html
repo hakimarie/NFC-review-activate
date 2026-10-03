@@ -360,116 +360,38 @@ th{
   white-space: pre-wrap;
   overflow: auto;
 }
-</style>
+.client-hero{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;margin-bottom:20px}.clean-stats{padding:15px}.clean-stats .stats{grid-template-columns:repeat(4,1fr)}@media(max-width:800px){.clean-stats .stats{grid-template-columns:1fr 1fr}}</style>
 </head>
 
 <body>
 
-<pre id="rpcDebug" aria-label="RPC Debug" style="display:none"></pre>
+
 
 <header>
-  <div class="logo">Ketemu<span>Terus</span><small>Visibility Dashboard</small></div>
+  <div class="logo">Ketemu<span>Terus</span></div>
   <button class="logout" id="logout">Logout</button>
 </header>
 
 <main class="container">
-
-  <!-- BUSINESS OVERVIEW -->
-  
-
-  <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap">
-
+  <div class="client-hero">
     <div>
-      <h1 id="clientName">Client Dashboard</h1>
+      <div class="eyebrow">AVENUE COFFEE & EATERY</div>
+      <h1>Google Review Dashboard</h1>
       <div class="sub" id="businessName">Memuat data bisnis...</div>
     </div>
-
-    <div style="text-align:right">
-      <div style="font-size:12px;color:#64748b">Business Connected</div>
-
-      <div style="margin-top:5px">
-        <span class="badge">● ACTIVE</span>
-      </div>
-    </div>
-
+    <span class="badge">● ACTIVE</span>
   </div>
 
-  <div class="notice">
-    Pantau aktivitas pelanggan, performa kartu, dan engagement QR + NFC dari satu dashboard.
-  </div>
-
-
-  <!-- BUSINESS SUMMARY -->
-  <section class="panel">
-    <h2>Business Overview</h2>
-
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:15px">
-
-      <div style="padding:16px;border-radius:12px;background:#f8fafc;border:1px solid #e2e8f0">
-        <div class="label">Active Cards</div>
-        <div class="value" id="summaryActive">-</div>
-      </div>
-
-      <div style="padding:16px;border-radius:12px;background:#f8fafc;border:1px solid #e2e8f0">
-        <div class="label">Customer Engagement</div>
-        <div class="value" id="summaryTotal">-</div>
-      </div>
-
-      <div style="padding:16px;border-radius:12px;background:#f8fafc;border:1px solid #e2e8f0">
-        <div class="label">Last Activity</div>
-        <div class="value" id="summaryLast" style="font-size:18px">-</div>
-      </div>
-
-      <div style="padding:16px;border-radius:12px;background:#f8fafc;border:1px solid #e2e8f0">
-        <div class="label">Cards Without Activity</div>
-        <div class="value" id="summaryNever">-</div>
-      </div>
-
-    </div>
+  <section class="panel clean-stats">
+    <section class="stats" style="margin-bottom:0">
+      <div class="stat"><div class="label">Active Cards</div><div class="value" id="activeCards">-</div></div>
+      <div class="stat"><div class="label">Total Scan</div><div class="value" id="totalScans">-</div></div>
+      <div class="stat"><div class="label">Today</div><div class="value" id="today">-</div></div>
+      <div class="stat"><div class="label">7-Day Engagement</div><div class="value" id="sevenDays">-</div></div>
+    </section>
   </section>
-
 
   <!-- ACTION CENTER -->
-  <!-- PERFORMANCE OVERVIEW -->
-  <section class="panel">
-
-    <h2>Performance Overview</h2>
-
-    <section class="stats" style="margin-bottom:0">
-
-      <div class="stat">
-        <div class="label">Active Cards</div>
-        <div class="value" id="activeCards">-</div>
-      </div>
-
-      <div class="stat">
-        <div class="label">Customer Engagement</div>
-        <div class="value" id="totalScans">-</div>
-      </div>
-
-      <div class="stat">
-        
-      </div>
-
-      <div class="stat">
-        
-      </div>
-
-      <div class="stat">
-        <div class="label">Today</div>
-        <div class="value" id="today">-</div>
-      </div>
-
-      <div class="stat">
-        <div class="label">7-Day Engagement</div>
-        <div class="value" id="sevenDays">-</div>
-      </div>
-
-    </section>
-
-  </section>
-
-
   <!-- INSIGHT -->
   <!-- SCAN TREND -->
   <section class="panel">
@@ -525,10 +447,7 @@ th{
 
       <span>■ Customer Engagement</span>
 
-      <span>
-        QR:
-        <strong id="trendQr">0</strong>
-      </span>
+      
 
       
 
@@ -555,13 +474,7 @@ th{
         <thead>
 
           <tr>
-            <th>Card</th>
-            <th>Business</th>
-            <th>Status</th>
-            <th>Total Scan</th>
-            <th>Today</th>
-            <th>7 Days</th>
-            <th>Last Activity</th>
+            <th>Card</th><th>Status</th><th>Total Scan</th><th>Today</th><th>7 Days</th><th>Last Activity</th>
           </tr>
 
         </thead>
@@ -633,20 +546,20 @@ th{
       </div>
 
       <div class="detail-section">
-        <div class="label">Customer Activity</div>
+        <div class="label">Scan Activity</div>
         <div id="detailHistory" class="scan-history">
           <div class="loading" style="padding:14px">Memuat history...</div>
         </div>
       </div>
 
       <div class="detail-section">
-        <div class="label">Google Business & Review</div>
+        <div class="label">Google Review</div>
         <div style="color:#64748b;font-size:13px;margin-top:5px">
-          Buka halaman Google bisnis untuk melihat rating dan review pelanggan.
+          Buka halaman Google Review Avenue Coffee & Eatery.
         </div>
         <div id="detailReviewUrl" class="detail-review-url" style="display:none"></div>
         <a id="detailReview" class="review-link" href="#" target="_blank" rel="noopener">
-          Lihat Google Business & Review
+          Lihat Google Review
         </a>
       </div>
     </div>
@@ -920,8 +833,7 @@ async function loadTrend(){
 
 async function loadAnalytics(){
 
-  const source = null;
-  const startDate = null;
+  
 
 
   const {data,error} =
@@ -969,7 +881,7 @@ async function loadAnalytics(){
    */
   if(!clientRows.length){
     rows.innerHTML =
-      '<tr><td colspan="9" class="empty">Belum ada data kartu.</td></tr>';
+      '<tr><td colspan="6" class="empty">Belum ada data kartu.</td></tr>';
     msg.textContent='';
     return;
   }
@@ -982,7 +894,6 @@ async function loadAnalytics(){
             ${esc(r.card_code)}
           </a>
         </td>
-        <td>${esc(r.business_name || '-')}</td>
         <td><span class="badge">${esc(r.card_status || '-')}</span></td>
         <td><strong>${Number(r.total_scans || 0)}</strong></td>
         <td>${Number(r.scans_today || 0)}</td>
@@ -1002,18 +913,6 @@ async function loadAnalytics(){
   const total =
     clientRows.reduce(
       (s,r) => s + Number(r.total_scans || 0),
-      0
-    );
-
-  const qr =
-    clientRows.reduce(
-      (s,r) => s + Number(r.qr_scans || 0),
-      0
-    );
-
-  const nfc =
-    clientRows.reduce(
-      (s,r) => s + Number(r.nfc_scans || 0),
       0
     );
 
@@ -1044,29 +943,9 @@ async function loadAnalytics(){
           new Date(a.last_scan)
       )[0];
 
-  const neverScanned =
-    clientRows.filter(
-      r => Number(r.total_scans || 0) === 0
-    ).length;
+  
 
-  document.getElementById('summaryActive').textContent = active;
-  document.getElementById('summaryTotal').textContent = total;
-  document.getElementById('summaryNever').textContent = neverScanned;
-
-  document.getElementById('clientName').textContent =
-    'Client Dashboard';
-
-  document.getElementById('businessName').textContent =
-    [...new Set(
-      clientRows
-        .map(r => r.business_name)
-        .filter(Boolean)
-    )].join(' • ') || 'Business Overview';
-
-  document.getElementById('summaryLast').textContent =
-    summaryLastScan
-      ? activityLabel(summaryLastScan.last_scan)
-      : '-';
+  
 
   // Card table was rendered immediately after the RPC.
 
@@ -1181,9 +1060,6 @@ function renderCardDetailChart(history){
 
   const max=Math.max(1,...rows.map(r=>r.total));
   const total=rows.reduce((s,r)=>s+r.total,0);
-  const qr=rows.reduce((s,r)=>s+r.qr,0);
-  const nfc=rows.reduce((s,r)=>s+r.nfc,0);
-
   document.getElementById('detailTrendSummary').textContent=total+' scan';
 
   chart.innerHTML=rows.map(r=>{
