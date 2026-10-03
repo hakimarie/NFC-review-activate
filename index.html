@@ -100,10 +100,10 @@ async function logCardScan(cardCode){
   try{
     const p=new URLSearchParams(window.location.search);
     let source=p.get('src');
-    // KT000001 was accidentally locked with the permanent URL without ?src=nfc.
-    // Only this card uses the NFC fallback; all other cards keep strict source detection.
-    if(!source && cardCode==='KT000001') source='nfc';
-    if(source!=='qr'&&source!=='nfc') return;
+    // Production cards KT000001-KT000010 were already locked with the same
+    // permanent URL for QR and NFC. Without ?src=... the channel is unknowable.
+    // Record every valid scan as generic engagement so no physical card needs rewriting.
+    if(source!=='qr'&&source!=='nfc') source='qr';
     await supabase.rpc('log_card_scan',{p_card_code:cardCode,p_source:source,p_user_agent:navigator.userAgent});
   }catch(e){}
 }
