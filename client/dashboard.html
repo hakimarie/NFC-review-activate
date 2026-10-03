@@ -348,9 +348,24 @@ th{
   }
 }
 </style>
+  <style id="rpcDebugStyle">
+#rpcDebug {
+  display: none;
+  margin: 16px 0;
+  padding: 14px;
+  background: #0f172a;
+  color: #e2e8f0;
+  border-radius: 10px;
+  font: 12px/1.5 monospace;
+  white-space: pre-wrap;
+  overflow: auto;
+}
+</style>
 </head>
 
 <body>
+
+<pre id="rpcDebug" aria-label="RPC Debug"></pre>
 
 <header>
   <div class="logo">Ketemu<span>Terus</span><small>Visibility Dashboard</small></div>
@@ -966,6 +981,25 @@ async function loadAnalytics(){
 
   clientRows =
     data || [];
+
+// TEMP DEBUG: authenticated RPC diagnostics
+const debugBox = document.getElementById('rpcDebug');
+
+if (debugBox) {
+  const sessionResult = await supabase.auth.getSession();
+
+  debugBox.style.display = 'block';
+
+  debugBox.textContent = JSON.stringify({
+    session: sessionResult.data?.session ? 'ACTIVE' : 'NO SESSION',
+    user_id: sessionResult.data?.session?.user?.id || null,
+    row_count: Array.isArray(data) ? data.length : null,
+    card_codes: Array.isArray(data)
+      ? data.map(r => r.card_code)
+      : [],
+    error: error || null
+  }, null, 2);
+}
 
 
   msg.textContent='';
