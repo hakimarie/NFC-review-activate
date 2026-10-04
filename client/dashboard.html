@@ -955,8 +955,6 @@ async function openCardDetail(row){
   document.getElementById('detailTitle').textContent = row.card_code || '-';
   document.getElementById('detailBusiness').textContent = row.business_name || '-';
   document.getElementById('detailTotal').textContent = Number(row.total_scans || 0);
-  document.getElementById('detailQr').textContent = Number(row.qr_scans || 0);
-  document.getElementById('detailNfc').textContent = Number(row.nfc_scans || 0);
   document.getElementById('detailToday').textContent = Number(row.scans_today || 0);
   document.getElementById('detailSeven').textContent = Number(row.scans_7_days || 0);
   document.getElementById('detailStatus').textContent = row.card_status || '-';
