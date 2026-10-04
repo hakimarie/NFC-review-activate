@@ -124,7 +124,10 @@ async function resolveCard(){
     if(error)throw error;
     const card=Array.isArray(data)?data[0]:data;
     if(card&&card.status==='ACTIVE'&&card.review_url){
-      logCardScan(code);
+      // Tunggu pencatatan scan selesai sebelum redirect ke Google Review.
+      // Kalau langsung redirect, browser bisa membatalkan request RPC sehingga
+      // QR/NFC berhasil membuka Google tetapi scan tidak masuk dashboard.
+      await logCardScan(code);
       window.location.replace(card.review_url);
       return;
     }
